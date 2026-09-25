@@ -1,0 +1,82 @@
+﻿using InescapableTarkovsSoftcore.Config;
+using InescapableTarkovsSoftcore.Features;
+using InescapableTarkovsSoftcore.Features.Softcore;
+using SPTarkov.Server.Core.Models.Enums;
+using SPTarkov.Server.Core.Models.Spt.Config;
+using SPTarkov.Server.Core.Models.Spt.Tables;
+using Xunit;
+
+namespace InescapableTarkovsSoftcore.Tests;
+
+public class SoftcoreModuleTests
+{
+    [Fact]
+    public void Module_IsSoftcoreAtOrder100()
+    {
+        var module = NewModule(SoftcoreTestData.NewHideoutConfig(), out _);
+
+        Assert.Equal("softcore", module.Id);
+        Assert.Equal(100, module.Order);
+    }
+
+    [Fact]
+    public void Module_AppliesBatch_WithoutErrors()
+    {
+        var module = NewModule(SoftcoreTestData.NewHideoutConfig(ItemTpl.SECURE_WAIST_POUCH), out var context);
+
+        var report = module.Apply(context);
+
+        Assert.Null(report.Error);
+        Assert.True(report.ChangedCount > 0);
+        Assert.Equal("softcore", report.Id);
+    }
+
+    [Fact]
+    public void Module_DisabledSoftcore_ReportsDisabled()
+    {
+        var module = NewModule(SoftcoreTestData.NewHideoutConfig(ItemTpl.SECURE_WAIST_POUCH), out var context);
+        var config = context.Config;
+        config.Softcore.Enabled = false;
+
+        // 禁用判定归编排器（见 ModuleOrchestrator）；此处断言模块自持开关绑定正确。
+        Assert.False(module.IsEnabled(config));
+    }
+
+    private static SoftcoreModule NewModule(HideoutConfig hideoutConfig, out ModContext context)
+    {
+        var templates = BuildTemplates();
+        var hideout = BuildHideout();
+        var traders = BuildTraders();
+
+        var tables = new ModTables(templates, hideout, null!, traders, null!);
+        context = new ModContext(new SoftcoreConfig(), tables);
+
+        return new SoftcoreModule(new TestSptLogger<SoftcoreModule>(), hideoutConfig);
+    }
+
+    private static TemplateTable BuildTemplates()
+    {
+        var templates = SoftcoreTestData.NewTemplates();
+        templates.Items[ItemTpl.SECURE_WAIST_POUCH] = SoftcoreTestData.NewContainer(ItemTpl.SECURE_WAIST_POUCH, 1, 1);
+        templates.Items[ItemTpl.SECURE_CONTAINER_GAMMA] = SoftcoreTestData.NewContainer(ItemTpl.SECURE_CONTAINER_GAMMA, 1, 1);
+        templates.Profiles["standard"] = SoftcoreTestData.NewProfile(
+            ItemTpl.SECURE_CONTAINER_GAMMA, ItemTpl.STASH_STANDARD_STASH_10X30, 1);
+        templates.Quests[SoftcoreTestData.CollectorQuestId] = SoftcoreTestData.NewCollectorQuest();
+        return templates;
+    }
+
+    private static HideoutTable BuildHideout()
+    {
+        var hideout = SoftcoreTestData.NewHideout();
+        hideout.Areas!.Add(SoftcoreTestData.NewStashArea());
+        return hideout;
+    }
+
+    private static TradersTable BuildTraders()
+    {
+        var traders = SoftcoreTestData.NewTraders();
+        traders[Traders.PEACEKEEPER] = SoftcoreTestData.NewPeacekeeper(ItemTpl.SECURE_CONTAINER_BETA);
+        return traders;
+    }
+}
+

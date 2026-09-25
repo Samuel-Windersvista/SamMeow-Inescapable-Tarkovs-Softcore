@@ -25,7 +25,37 @@
     "enabled": true
   },
   "softcore": {
-    "enabled": true
+    // Softcore 经济与制造系统大修（子结构对齐源 config.json5；数值为 SURV 终态）
+    "enabled": true,
+    "secureContainersOptions": {
+      // 渐进式安全容器：新档 2×2 腰包起步，逐级升级到 Kappa
+      "enabled": true,
+      "progressiveContainers": {
+        "enabled": true,
+        // 收藏家任务重做：20 级可接，仅需交 1 张 Gamma
+        "collectorQuestRedone": true
+      },
+      // 放宽容器尺寸：Alpha 3×3 / Beta 3×4 / Epsilon 3×5 / Gamma 4×5 / Kappa 5×5
+      "biggerContainers": true
+    },
+    "stashOptions": {
+      "enabled": true,
+      // 新档从 LVL1 仓库起步
+      "progressiveStash": true,
+      // 扩容至 50/100/150/200 行
+      "biggerStash": true,
+      // 仓库建造现金需求 ÷10
+      "lessCurrencyForConstruction": true,
+      // 降低阶段建造忠诚度要求（SURV 关闭）
+      "easierLoyalty": false
+    },
+    "hideoutContainers": {
+      "enabled": true,
+      // 药品箱/Holodilnick/弹匣箱/物品箱/武器箱/钥匙工具 扩容
+      "biggerHideoutContainers": true,
+      // SICC 增强：并入 Docs 允许清单并允许钥匙工具
+      "siccCaseBuff": true
+    }
   },
 
   // 战局时长控制：multiplier 为全局倍率，1.0 = 原版时长
