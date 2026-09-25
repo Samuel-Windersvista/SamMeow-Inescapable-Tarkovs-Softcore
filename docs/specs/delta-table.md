@@ -132,7 +132,7 @@
 | clothing.json | 22 | 22 | **完全一致** |
 | keycards.json | 1 | 1 | **完全一致**（Keycard 堆叠 = 1，即不堆叠） |
 | medicals.json | 31 | 43 | `StackMult` 1→**2**；删 11 / 增 23 |
-| partsnmods.json | 107 (+10 父类) | 107 (+10 父类) | 内容一致，**`Active` true→false** |
+| partsnmods.json | 104 (+10 父类) | 104 (+10 父类) | 内容一致，**`Active` true→false** |
 | provisions.json | 13 | 19 | 改 1 / 删 2 / 增 8 |
 
 ### 3a barter.json 代表值（BASE→IMM）
@@ -237,7 +237,7 @@ IMM `StackMult: 2`、43 条：保留 20 个注射器；删 Morphine + 全部 10 
 ## 5. 无覆盖层项
 
 - **Samuel's Tweaks**：无覆盖层；默认 = 自身（护甲弹挂冲突修复 / 可掠夺臂章与近战 / 三格弹匣缩格 / 启动器背景）。
-- **nofirhideout**：无覆盖层、无配置（纯逻辑：藏身处需求 `isSpawnedInSession=false`）。
+- **noFirHideout**：无覆盖层、无配置（纯逻辑：藏身处需求 `isSpawnedInSession=false`）。
 - **战局时长控制**：新增功能，默认 1.0。
 
 ## 6. 不确定项

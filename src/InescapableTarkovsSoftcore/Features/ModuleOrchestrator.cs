@@ -77,6 +77,14 @@ public sealed class ModuleOrchestrator(
         foreach (var report in reports)
         {
             logger.Info(FormatModule(report));
+
+            // D15 警告汇总：summary 行后逐条输出该模块的告警正文。
+            // 告警文本由各模块构造时已带 [ITS] {id} 前缀，此处原样转发，避免重复前缀；
+            // 用 Info 输出以免与模块自身已发出的 Warning 行重复（本块只做汇总展示）。
+            foreach (var warning in report.Warnings)
+            {
+                logger.Info(warning);
+            }
         }
 
         logger.Info(
