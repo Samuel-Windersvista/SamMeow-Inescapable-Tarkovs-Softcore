@@ -90,17 +90,17 @@
         "enabled": true,
         "hideoutSkillExpMultiplier": 10
       },
-      // 月光酒制造时间倍率
+      // 月光酒制造时间倍率（÷0.3 ≈ 时间 ×3.33；名称 faster* 但时间变长，属源真实行为）
       "fasterMoonshineProduction": {
         "enabled": true,
         "baseCraftingTimeMultiplier": 0.3
       },
-      // 纯净水制造时间倍率
+      // 纯净水制造时间倍率（÷0.3 ≈ 时间 ×3.33；同属源真实行为）
       "fasterPurifiedWaterProduction": {
         "enabled": true,
         "baseCraftingTimeMultiplier": 0.3
       },
-      // 邪教徒圈制造时间倍率
+      // 邪教徒圈制造时间倍率（÷0.5 = 时间 ×2；同属源真实行为）
       "fasterCultistCircle": {
         "enabled": true,
         "baseCraftingTimeMultiplier": 0.5
@@ -129,6 +129,7 @@
       "betterRewards": true,
       "fasterScavcase": {
         "enabled": true,
+        // ÷0.5 = 时间 ×2（名称 faster* 但时间变长，属源真实行为）
         "speedMultiplier": 0.5
       },
       "rebalance": true

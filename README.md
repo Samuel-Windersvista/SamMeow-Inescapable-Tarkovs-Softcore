@@ -216,6 +216,8 @@ build/overlay/
 
 各组开关独立；`raidDuration.multiplier` 调整战局时长倍率（例如 `2.0` 使地图时限翻倍）。`softcore` 段随 G6 串行链（T08–T11）逐步扩展，子开关默认值 = 旧包 SURV 终态。
 
+> 倍率方向语义（源真实行为，非笔误）：`faster*` 时间参数实现为 `时间 / 倍率`，故 `0.3` → ×3.33、`0.5` → ×2（时间变长）。涉及 `fasterMoonshineProduction` / `fasterPurifiedWaterProduction` / `fasterCultistCircle` / `scavCaseOptions.fasterScavcase`。这是旧包终态行为，T09 审查确认保留。
+
 ### G2 True Items 查找表
 
 `trueItems` 组的数值来自源 mod（IMM 覆盖层）的六张查找表，已作为内嵌资源随 DLL 分发，
