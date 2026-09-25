@@ -129,5 +129,24 @@ build/overlay/
 
 ## 状态
 
+### 已实现模块
+
+- **G3 nofirhideout**（`NoFirHideoutModule`，Order=600）：遍历藏身处区域阶段的建造/升级需求
+  （`stages[].requirements` 与 `stages[].improvements[].requirements`），凡 `isSpawnedInSession`
+  为 `true` 者置 `false`；无该键的需求不变。开关 `noFirHideout.enabled` 关闭时零变更。
+- **G7 raidDuration**（`RaidDurationModule`，Order=700）：`raidDuration.multiplier`（默认 1.0）
+  乘以各图时限 `LocationTable.<map>.Base.EscapeTimeLimit`；`1.0` 不变、非法（≤0）告警且零变更；
+  开关关闭时零变更。
+
+#### G7 字段核对结论（SPT 5.0.0 build 47242 运行时程序集）
+
+- 时限字段位置：`SPTarkov.Server.Core.Models.Eft.Common.LocationBase.EscapeTimeLimit`
+  （经 `LocationTable.<map>.Base` 访问）；服务器自身 `RaidTimeAdjustmentService.MakeAdjustmentsToMap`
+  亦以该字段作为战局时长写入点。
+- 类型：非空 `double`（`required`）。3.11 旧包字段名同为 `EscapeTimeLimit`，语义可平移。
+- `EscapeTimeLimitCoop` / `EscapeTimeLimitPVE`：服务器未用于战局时长，本模块不改动。
+- 注意：本仓库引用的 SP-Tushonka 源码快照与真实运行时的模型修饰符存在差异（快照为可空
+  `double?`，运行时为 `required double`，且运行时模型广泛使用 `required` 成员）。实现以运行时程序集为准。
+
 设计访谈（grill-with-docs）已收敛；规格书与工单进行中。版本自 `0.1.0` 起步。
 
