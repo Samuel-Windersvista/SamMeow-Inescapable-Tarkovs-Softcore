@@ -17,3 +17,8 @@ release/*
 *.log
 Thumbs.db
 desktop.ini
+
+# BEGIN oh-my-opencode-slim worktrees
+.slim/worktrees/
+.slim/worktrees.json
+# END oh-my-opencode-slim worktrees
