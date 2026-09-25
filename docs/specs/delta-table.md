@@ -156,7 +156,7 @@ IMM `StackMult: 2`、43 条：保留 20 个注射器；删 Morphine + 全部 10 
 
 ## 4. Softcore（三层 config + 源文件覆盖）
 
-生效链：BASE config → IMM config → **SURV config**（最高）。源码覆盖：IMM 与 SURV 各含 2 个 `.ts`（两者逐行一致 → SURV ≡ IMM）。
+生效链：BASE config → IMM config → **SURV config**（最高）。源码覆盖：SURV 目录含 3 个 `.ts` 覆盖（`SecureContainerOptionsChanger.ts` / `OtherTweaksChanger.ts` / `HideoutContainersChanger.ts`），与 IMM 对应文件逐行一致 → SURV ≡ IMM。**修正**：早前判断「IMM/SURV 无 HideoutContainersChanger 覆盖」有误——该文件确实存在（mtime 晚于 BASE），故藏身处容器尺寸取 SURV 覆盖值（见 §4b/§4c）。
 
 ### 4a 三列 config 差异表（仅差异 key）
 
@@ -215,9 +215,18 @@ IMM `StackMult: 2`、43 条：保留 20 个注射器；删 Morphine + 全部 10 
 - `doQuestChanges`：4 项 → 仅 Crisis(=30) + Drip-Out。
 - 移除 `skipUnexaminedIDs` 集合。
 
+**`HideoutContainersChanger.ts`**（SURV 覆盖；BASE 对照）：
+- `doBiggerHideoutContainers()` 尺寸修正（tuple = cellsH × cellsV，源 TS 原始记法）：
+  - 药品箱 10×10、Holodilnick 10×10、弹匣箱 H10·V7、钥匙工具 5×5（两层一致）
+  - 物品箱 10×10 → **6×6**；武器箱 H6·V15（BASE）→ **H7·V6**（SURV）
+  - **新增** THICC 武器箱 **H14·V6**、THICC 物品箱 **H14·V6**（SURV 新增条目）
+- `doSiccCaseBuff()` 与 BASE 一致（Docs 允许清单 ∪ SICC 允许清单 ∪ 钥匙工具）。
+
 ### 4c 最终态（SURV）结论摘要
 
-- 藏身处：制造 3× · 建设 50× · 燃料 4× · ScavCase 速度 ×0.5 · 比特币 GPU×1 / 基础 1.3 · 渐进式仓库（50/100/150/200 行）
+- 藏身处：制造 3× · 建设 50× · 燃料 4× · ScavCase 速度 ×0.5 · 比特币 GPU×1 / 基础 1.3 · 渐进式仓库（50/100/150/200 行；The Unheard 250 行源自 BASE `StashOptionsChanger.ts:108`，SURV 未覆盖，保留）
+- 藏身处容器（SURV 覆盖终态，cellsV × cellsH）：药品 10×10 · Holodilnick 10×10 · 弹匣 7×10 · 物品 6×6 · 武器 6×7 · 钥匙工具 5×5 · THICC 武器 6×14 · THICC 物品 6×14
+- 安全容器（SURV）：腰包 2×4（源 TS 注释「腰包是 2x4」）· Alpha 3×3 · Beta 3×4 · Epsilon 3×5 · Gamma 4×5 · Kappa 5×5
 - 经济：和平主义跳蚤（1 级开放、仅全新品、价 ×1.5）· 以物易物（现金 5%、价差 30%、报价 5–13、最多 4 换 1）· priceRebalance 关
 - 商人：收价上调 · Fence 15 报价 · Skier 欧元开 · 购买上限 ×2
 - 保险：Prapor 70% 返还 / 240–360min / **保费 80%**（存疑）；Therapist 60% / 120–240 / 50%

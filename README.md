@@ -131,9 +131,9 @@ build/overlay/
       "lessCurrencyForConstruction": true,
       "easierLoyalty": false
     },
-    "hideoutContainers": {                          // 藏身处容器扩容 + SICC 增强
-      "enabled": true,
-      "biggerHideoutContainers": true,
+    "hideoutContainers": {                          // 藏身处容器扩容 + SICC 增强（SURV 终态，cellsV×cellsH）
+      "enabled": true,                              // 药品 10×10 / Holo 10×10 / 弹匣 7×10 / 物品 6×6 /
+      "biggerHideoutContainers": true,              // 武器 6×7 / 钥匙工具 5×5 / THICC 武器 6×14 / THICC 物品 6×14
       "siccCaseBuff": true
     }
   },
