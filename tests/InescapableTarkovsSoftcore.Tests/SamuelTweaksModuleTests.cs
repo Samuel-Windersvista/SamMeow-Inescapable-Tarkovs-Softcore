@@ -1,13 +1,10 @@
 ﻿using InescapableTarkovsSoftcore.Config;
 using InescapableTarkovsSoftcore.Features;
-using Microsoft.Extensions.Logging;
-using SPTarkov.Common.Models.Logging;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Spt.Tables;
 using Xunit;
-using Color = Spectre.Console.Color;
 using Path = System.IO.Path;
 
 namespace InescapableTarkovsSoftcore.Tests;
@@ -195,8 +192,8 @@ public class SamuelTweaksModuleTests
 
         var table = Table(rig);
         var orchestrator = new ModuleOrchestrator(
-            [new SamuelTweaksModule(new RecordingModuleLogger())],
-            new RecordingOrchestratorLogger(),
+            [new SamuelTweaksModule(new RecordingLogger<SamuelTweaksModule>())],
+            new RecordingLogger<ModuleOrchestrator>(),
             new ModTables(table, null!, null!, null!, null!));
 
         var report = orchestrator.Run(config);
@@ -209,7 +206,7 @@ public class SamuelTweaksModuleTests
     [Fact]
     public void Module_MetadataAndInjectable()
     {
-        var module = new SamuelTweaksModule(new RecordingModuleLogger());
+        var module = new SamuelTweaksModule(new RecordingLogger<SamuelTweaksModule>());
 
         Assert.Equal("samuelTweaks", module.Id);
         Assert.Equal(200, module.Order);
@@ -250,7 +247,7 @@ public class SamuelTweaksModuleTests
     {
         var config = new SoftcoreConfig { SamuelTweaks = section };
         var context = new ModContext(config, new ModTables(Table(items), null!, null!, null!, null!));
-        return new SamuelTweaksModule(new RecordingModuleLogger()).Apply(context);
+        return new SamuelTweaksModule(new RecordingLogger<SamuelTweaksModule>()).Apply(context);
     }
 
     private static SamuelTweaksConfig SamuelConfig(bool armor, bool armband, bool melee, bool magazines) =>
@@ -353,31 +350,5 @@ public class SamuelTweaksModuleTests
         }
 
         throw new InvalidOperationException("未能定位仓库根目录（未找到 InescapableTarkovsSoftcore.sln）");
-    }
-
-    private sealed class RecordingModuleLogger : ISptLogger<SamuelTweaksModule>
-    {
-        public void Info(string data, Exception? ex = null) { }
-        public void Error(string data, Exception? ex = null) { }
-        public void Warning(string data, Exception? ex = null) { }
-        public void Debug(string data, Exception? ex = null) { }
-        public void Success(string data, Exception? ex = null) { }
-        public void Critical(string data, Exception? ex = null) { }
-        public void LogWithColor(string data, Color? textColor = null, Color? backgroundColor = null, Exception? ex = null) { }
-        public void Log(LogLevel level, string data, Color? textColor = null, Color? backgroundColor = null, Exception? ex = null) { }
-        public bool IsLogEnabled(LogLevel level) => true;
-    }
-
-    private sealed class RecordingOrchestratorLogger : ISptLogger<ModuleOrchestrator>
-    {
-        public void Info(string data, Exception? ex = null) { }
-        public void Error(string data, Exception? ex = null) { }
-        public void Warning(string data, Exception? ex = null) { }
-        public void Debug(string data, Exception? ex = null) { }
-        public void Success(string data, Exception? ex = null) { }
-        public void Critical(string data, Exception? ex = null) { }
-        public void LogWithColor(string data, Color? textColor = null, Color? backgroundColor = null, Exception? ex = null) { }
-        public void Log(LogLevel level, string data, Color? textColor = null, Color? backgroundColor = null, Exception? ex = null) { }
-        public bool IsLogEnabled(LogLevel level) => true;
     }
 }

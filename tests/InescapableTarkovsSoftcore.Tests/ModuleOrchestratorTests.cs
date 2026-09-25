@@ -1,8 +1,5 @@
 using InescapableTarkovsSoftcore.Config;
 using InescapableTarkovsSoftcore.Features;
-using Microsoft.Extensions.Logging;
-using Spectre.Console;
-using SPTarkov.Common.Models.Logging;
 using Xunit;
 
 namespace InescapableTarkovsSoftcore.Tests;
@@ -130,6 +127,31 @@ public class ModuleOrchestratorTests
     }
 
     [Fact]
+    public void Run_AppendsModuleWarningBodies_AfterSummaryLine()
+    {
+        var executed = new List<string>();
+        IFeatureModule[] modules =
+        [
+            new FakeModule(
+                "backpacks",
+                ModuleOrders.Backpacks,
+                executed,
+                warnings: ["[ITS] backpacks: 未找到背包 \"X\"（deadbeef），已跳过"])
+        ];
+        var orchestrator = CreateOrchestrator(modules, out var logger);
+
+        orchestrator.Run(new SoftcoreConfig());
+
+        var summaryIndex = logger.InfoMessages.FindIndex(
+            message => message.Contains("backpacks: changed=", StringComparison.Ordinal));
+        var warningIndex = logger.InfoMessages.FindIndex(
+            message => message.Contains("未找到背包", StringComparison.Ordinal));
+
+        Assert.True(summaryIndex >= 0, "应输出模块 summary 行");
+        Assert.True(warningIndex > summaryIndex, "告警正文应紧随 summary 行之后输出");
+    }
+
+    [Fact]
     public void Run_FeatureModuleChain_ResolvesSection_ForEnabledAndDisabledBranches()
     {
         var executed = new List<string>();
@@ -151,9 +173,9 @@ public class ModuleOrchestratorTests
         Assert.Contains("trueItems", disabledReport.SkippedModuleIds);
     }
 
-    private static ModuleOrchestrator CreateOrchestrator(IEnumerable<IFeatureModule> modules, out RecordingLogger logger)
+    private static ModuleOrchestrator CreateOrchestrator(IEnumerable<IFeatureModule> modules, out RecordingLogger<ModuleOrchestrator> logger)
     {
-        logger = new RecordingLogger();
+        logger = new RecordingLogger<ModuleOrchestrator>();
         return new ModuleOrchestrator(modules, logger, TestModTables.Empty);
     }
 
@@ -174,7 +196,8 @@ public class ModuleOrchestratorTests
         int order,
         List<string> executed,
         bool enabled = true,
-        Action? onApply = null) : IFeatureModule
+        Action? onApply = null,
+        IReadOnlyList<string>? warnings = null) : IFeatureModule
     {
         public string Id { get; } = id;
 
@@ -186,7 +209,7 @@ public class ModuleOrchestratorTests
         {
             executed.Add(Id);
             onApply?.Invoke();
-            return ModuleReport.Ok(Id);
+            return ModuleReport.Ok(Id, 0, warnings);
         }
     }
 
@@ -204,37 +227,5 @@ public class ModuleOrchestratorTests
             executed.Add(Id);
             return ModuleReport.Ok(Id, 7);
         }
-    }
-
-    private sealed class RecordingLogger : ISptLogger<ModuleOrchestrator>
-    {
-        public List<string> InfoMessages { get; } = [];
-
-        public List<string> ErrorMessages { get; } = [];
-
-        public List<string> WarningMessages { get; } = [];
-
-        public void Info(string data, Exception? ex = null) => InfoMessages.Add(data);
-
-        public void Error(string data, Exception? ex = null) => ErrorMessages.Add(data);
-
-        public void Warning(string data, Exception? ex = null) => WarningMessages.Add(data);
-
-        public void Debug(string data, Exception? ex = null) { }
-
-        public void Success(string data, Exception? ex = null) { }
-
-        public void Critical(string data, Exception? ex = null) { }
-
-        public void LogWithColor(string data, Color? textColor = null, Color? backgroundColor = null, Exception? ex = null) { }
-
-        public void Log(
-            LogLevel level,
-            string data,
-            Color? textColor = null,
-            Color? backgroundColor = null,
-            Exception? ex = null) { }
-
-        public bool IsLogEnabled(LogLevel level) => true;
     }
 }
