@@ -151,11 +151,14 @@ public class ConfigLoaderTests
             foreach (var leaf in section.PropertyType.GetProperties())
             {
                 var leafType = Nullable.GetUnderlyingType(leaf.PropertyType) ?? leaf.PropertyType;
-                sectionObject[JsonName(leaf)] = leafType == typeof(bool)
-                    ? JsonValue.Create(true)
-                    : leafType == typeof(string)
-                        ? JsonValue.Create("x")
-                        : JsonValue.Create(1.0);
+                sectionObject[JsonName(leaf)] = leafType.IsGenericType
+                    && leafType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
+                        ? new JsonObject()
+                        : leafType == typeof(bool)
+                            ? JsonValue.Create(true)
+                            : leafType == typeof(string)
+                                ? JsonValue.Create("x")
+                                : JsonValue.Create(1.0);
             }
 
             root[JsonName(section)] = sectionObject;

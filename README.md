@@ -36,6 +36,8 @@ SPT 5.0 服务端整合 mod。把 Life in Norvinsk v0.3.2 的六组功能 + 战�
 ```
 InescapableTarkovsSoftcore.sln
 config/default-config.json              受控默认配置模板（JSONC）
+data/                                   功能查找表（EmbeddedResource 源文件）
+  antigravArmbands/armbands.json        G4 反重力臂章表（22 款）
 src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务端 mod）
   Config/                               配置模型与加载器
   Features/                             变换层接缝与编排器
@@ -44,6 +46,8 @@ scripts/build.ps1                       构建 + overlay 组装脚本
 build/overlay/                          构建产物（git 忽略）
 release/                                发行归档约定目录
 ```
+
+查找表经 `EmbeddedResource` 嵌入主程序集（逻辑名见 `InescapableTarkovsSoftcore.csproj`），运行时模块与测试经 `FeatureTables` 读取同一资源，无需随 overlay 拷贝。
 
 SPT 引用程序集目录由 MSBuild 属性 `SptRuntimeDir` 控制（默认值见 `Directory.Build.props`）。若 SPT 安装在别处：
 
@@ -115,7 +119,11 @@ build/overlay/
   "samuelTweaks": { "enabled": true },              // G1
   "trueItems": { "enabled": true },                 // G2
   "noFirHideout": { "enabled": true },              // G3
-  "antigravArmbands": { "enabled": true },          // G4
+  "antigravArmbands": {                              // G4
+    "enabled": true,
+    "stackSize": 5,                                  // 全部臂章堆叠上限
+    "overrides": {}                                  // 单品覆盖：臂章 id → 重量（最后应用）
+  },
   "backpacks": { "enabled": true },                 // G5
   "softcore": { "enabled": true },                  // G6
   "raidDuration": {                                 // G7

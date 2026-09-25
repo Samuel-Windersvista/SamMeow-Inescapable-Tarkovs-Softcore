@@ -14,4 +14,9 @@
     <EmbeddedResource Include="..\..\config\default-config.json" LogicalName="InescapableTarkovsSoftcore.default-config.json" />
   </ItemGroup>
 
+  <!-- 功能查找表：以 EmbeddedResource 嵌入，运行时与测试读取同一资源 -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\data\antigravArmbands\armbands.json" LogicalName="InescapableTarkovsSoftcore.antigravArmbands.armbands.json" />
+  </ItemGroup>
+
 </Project>

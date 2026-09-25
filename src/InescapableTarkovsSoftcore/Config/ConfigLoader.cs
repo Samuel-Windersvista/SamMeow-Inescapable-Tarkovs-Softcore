@@ -185,6 +185,7 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
 
         var boolKeys = new HashSet<string>(StringComparer.Ordinal);
         var numberKeys = new HashSet<string>(StringComparer.Ordinal);
+        var objectKeys = new HashSet<string>(StringComparer.Ordinal);
         var allowed = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var property in sectionType.GetProperties())
@@ -201,6 +202,11 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
             {
                 numberKeys.Add(name);
             }
+            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            {
+                // 字典型叶键（如 overrides）：只要求是对象，键值类型交给绑定层。
+                objectKeys.Add(name);
+            }
         }
 
         foreach (var (key, value) in section.ToList())
@@ -212,9 +218,11 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
                 continue;
             }
 
-            var valid = boolKeys.Contains(key)
-                ? value is JsonValue boolValue && boolValue.TryGetValue<bool>(out _)
-                : !numberKeys.Contains(key) || (value is JsonValue numberValue && numberValue.TryGetValue<double>(out _));
+            var valid = objectKeys.Contains(key)
+                ? value is JsonObject
+                : boolKeys.Contains(key)
+                    ? value is JsonValue boolValue && boolValue.TryGetValue<bool>(out _)
+                    : !numberKeys.Contains(key) || (value is JsonValue numberValue && numberValue.TryGetValue<double>(out _));
 
             if (!valid)
             {

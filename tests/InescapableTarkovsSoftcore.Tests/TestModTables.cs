@@ -1,4 +1,5 @@
 using InescapableTarkovsSoftcore.Features;
+using SPTarkov.Server.Core.Models.Spt.Tables;
 
 namespace InescapableTarkovsSoftcore.Tests;
 
@@ -6,4 +7,7 @@ namespace InescapableTarkovsSoftcore.Tests;
 internal static class TestModTables
 {
     public static ModTables Empty { get; } = new(null!, null!, null!, null!, null!);
+
+    /// <summary>仅挂载模板表（其余表不需要），供真实变换模块测试使用。</summary>
+    public static ModTables With(TemplateTable templateTable) => new(templateTable, null!, null!, null!, null!);
 }

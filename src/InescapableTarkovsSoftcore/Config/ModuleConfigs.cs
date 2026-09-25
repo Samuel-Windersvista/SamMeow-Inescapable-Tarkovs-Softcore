@@ -20,7 +20,16 @@ public sealed class TrueItemsConfig : ModuleConfig;
 public sealed class NoFirHideoutConfig : ModuleConfig;
 
 /// <summary>G4 反重力臂章。</summary>
-public sealed class AntigravArmbandsConfig : ModuleConfig;
+public sealed class AntigravArmbandsConfig : ModuleConfig
+{
+    /// <summary>全部臂章的堆叠上限（默认 5）。</summary>
+    [JsonPropertyName("stackSize")]
+    public int StackSize { get; set; } = 5;
+
+    /// <summary>单品覆盖：臂章 id → 重量（最后应用，覆盖内嵌查找表）。</summary>
+    [JsonPropertyName("overrides")]
+    public Dictionary<string, double> Overrides { get; set; } = new();
+}
 
 /// <summary>G5 更大的背包。</summary>
 public sealed class BackpacksConfig : ModuleConfig;
