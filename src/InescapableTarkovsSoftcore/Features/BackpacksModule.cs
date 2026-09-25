@@ -29,14 +29,14 @@ public sealed class BackpacksModule(ISptLogger<BackpacksModule> logger) : Featur
         {
             if (!items.TryGetValue(new MongoId(entry.Id), out var item))
             {
-                Warn(warnings, $"未找到背包 \"{entry.Name}\"（{entry.Id}），已跳过");
+                ModuleWarnings.Add(logger, Id, warnings, $"未找到背包 \"{entry.Name}\"（{entry.Id}），已跳过");
                 continue;
             }
 
             var gridProperties = item.Properties.Grids?.FirstOrDefault()?.Properties;
             if (gridProperties is null)
             {
-                Warn(warnings, $"背包 \"{entry.Name}\"（{entry.Id}）无网格，已跳过");
+                ModuleWarnings.Add(logger, Id, warnings, $"背包 \"{entry.Name}\"（{entry.Id}）无网格，已跳过");
                 continue;
             }
 
@@ -47,12 +47,5 @@ public sealed class BackpacksModule(ISptLogger<BackpacksModule> logger) : Featur
         }
 
         return ModuleReport.Ok(Id, changed, warnings);
-    }
-
-    private void Warn(List<string> warnings, string message)
-    {
-        var line = $"[ITS] {Id}: {message}";
-        warnings.Add(line);
-        logger.Warning(line);
     }
 }

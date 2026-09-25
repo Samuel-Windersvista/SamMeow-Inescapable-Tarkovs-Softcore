@@ -41,8 +41,9 @@ public sealed class TrueItemsListEntry
 /// <summary>List 条目的 <c>_props</c> 子对象：源格式仅含 StackMaxSize。</summary>
 public sealed class TrueItemsPropEntry
 {
+    /// <summary>目标堆叠值；缺失（源 <c>undefined</c>）时为 null，应用时跳过该条目。</summary>
     [JsonPropertyName("StackMaxSize")]
-    public int StackMaxSize { get; set; }
+    public int? StackMaxSize { get; set; }
 }
 
 /// <summary>ParentList 条目：父类 <c>_id</c> + 目标堆叠值。</summary>
@@ -54,8 +55,9 @@ public sealed class TrueItemsParentEntry
     [JsonPropertyName("_id")]
     public string Id { get; set; } = string.Empty;
 
+    /// <summary>目标堆叠值；缺失（源 <c>undefined</c>）时为 null，应用时跳过该条目。</summary>
     [JsonPropertyName("StackMaxSize")]
-    public int StackMaxSize { get; set; }
+    public int? StackMaxSize { get; set; }
 }
 
 /// <summary>六张查找表的聚合（数据源 = 旧包 IMM 覆盖层）。</summary>

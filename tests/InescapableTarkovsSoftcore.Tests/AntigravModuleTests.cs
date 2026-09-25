@@ -27,6 +27,18 @@ public class AntigravModuleTests
         Assert.Equal(1, armbands.Count(entry => entry.Weight == -25));
     }
 
+    [Theory]
+    [InlineData("5b3f16c486f7747c327f55f7", -6.0)]  // White
+    [InlineData("619bdeb986e01e16f839a99e", -8.0)]  // RFARMY
+    [InlineData("619bdd8886e01e16f839a99c", -10.0)] // BEAR
+    [InlineData("60b0f988c4449e4cb624c1da", -15.0)] // Evasion
+    [InlineData("67614b542eb91250020f2b86", -20.0)] // Prestige 1
+    [InlineData("67614b6b47c71ea3d40256d7", -25.0)] // Prestige 2
+    public void Table_AnchorsOneIdPerWeightTier(string id, double expectedWeight)
+    {
+        Assert.Equal(expectedWeight, FeatureTables.Armbands.Single(entry => entry.Id == id).Weight);
+    }
+
     [Fact]
     public void Apply_WhiteArmband_SetsMinusSixWeightAndStackFive()
     {
@@ -70,6 +82,38 @@ public class AntigravModuleTests
             Assert.Equal(entry.Weight, item.Properties.Weight);
             Assert.Equal(5, item.Properties.StackMaxSize);
         }
+    }
+
+    [Fact]
+    public void Apply_MissingArmbands_WarnAndSkip()
+    {
+        var table = TestTemplateTables.Create();
+        var logger = new RecordingLogger<AntigravModule>();
+
+        var report = new AntigravModule(logger).Apply(Context(table));
+
+        Assert.Equal(0, report.ChangedCount);
+        Assert.Equal(22, report.Warnings.Count);
+        Assert.Contains(report.Warnings, warning => warning.Contains(WhiteId, StringComparison.Ordinal));
+        Assert.Equal(22, logger.WarningMessages.Count);
+    }
+
+    [Fact]
+    public void Apply_Override_UnmatchedId_WarnsAndSkips()
+    {
+        const string unknownId = "000000000000000000000000";
+        var table = TestTemplateTables.Create((WhiteId, TestItems.Armband(weight: 100, stackMaxSize: 1)));
+        var config = new SoftcoreConfig();
+        config.AntigravArmbands.Overrides[unknownId] = -50;
+
+        var report = new AntigravModule(new RecordingLogger<AntigravModule>())
+            .Apply(Context(table, config));
+
+        Assert.Equal(1, report.ChangedCount);
+        Assert.Contains(
+            report.Warnings,
+            warning => warning.Contains(unknownId, StringComparison.Ordinal)
+                       && warning.Contains("overrides", StringComparison.Ordinal));
     }
 
     [Fact]

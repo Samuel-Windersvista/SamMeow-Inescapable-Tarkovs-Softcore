@@ -38,7 +38,7 @@ public sealed class AntigravModule(ISptLogger<AntigravModule> logger) : FeatureM
 
             if (!items.TryGetValue(new MongoId(entry.Id), out var item))
             {
-                Warn(warnings, $"未找到臂章 \"{entry.Name}\"（{entry.Id}），已跳过");
+                ModuleWarnings.Add(logger, Id, warnings, $"未找到臂章 \"{entry.Name}\"（{entry.Id}），已跳过");
                 continue;
             }
 
@@ -57,7 +57,7 @@ public sealed class AntigravModule(ISptLogger<AntigravModule> logger) : FeatureM
 
             if (!items.TryGetValue(new MongoId(id), out var item))
             {
-                Warn(warnings, $"overrides 未找到臂章 \"{id}\"，已跳过");
+                ModuleWarnings.Add(logger, Id, warnings, $"overrides 未找到臂章 \"{id}\"，已跳过");
                 continue;
             }
 
@@ -66,12 +66,5 @@ public sealed class AntigravModule(ISptLogger<AntigravModule> logger) : FeatureM
         }
 
         return ModuleReport.Ok(Id, changed, warnings);
-    }
-
-    private void Warn(List<string> warnings, string message)
-    {
-        var line = $"[ITS] {Id}: {message}";
-        warnings.Add(line);
-        logger.Warning(line);
     }
 }

@@ -146,8 +146,37 @@ public class TrueItemsModuleTests
     }
 
     [Fact]
-    public void Apply_NullProperties_SkipsSilently()
+    public void Apply_ListEntryWithoutStackMaxSize_SkipsSilently()
     {
+        // 条目值缺失（源 undefined）→ 跳过：不告警、不计数、目标表不变。
+        var table = TestItemTables.Items((AaBattery, "", 15, null));
+        var barter = ActiveList(1, new TrueItemsListEntry { Id = AaBattery, Name = "AA Battery", Props = new TrueItemsPropEntry() });
+
+        var report = TrueItemsApplier.Apply(Templates(barter: barter), table, new TrueItemsConfig());
+
+        Assert.Equal(0, report.ChangedCount);
+        Assert.Empty(report.Warnings);
+        Assert.Equal(15, TestItemTables.Props(table, AaBattery).StackMaxSize);
+    }
+
+    [Fact]
+    public void Apply_ParentEntryWithoutStackMaxSize_SkipsSilently()
+    {
+        var table = TestItemTables.Items(
+            (KeycardChildA, KeycardParent, 5, null),
+            (KeycardChildB, KeycardParent, 5, null));
+        var keycards = ActiveParents(1, new TrueItemsParentEntry { Id = KeycardParent, Name = "Keycard" });
+
+        var report = TrueItemsApplier.Apply(Templates(keycards: keycards), table, new TrueItemsConfig());
+
+        Assert.Equal(0, report.ChangedCount);
+        Assert.Empty(report.Warnings);
+        Assert.Equal(5, TestItemTables.Props(table, KeycardChildA).StackMaxSize);
+        Assert.Equal(5, TestItemTables.Props(table, KeycardChildB).StackMaxSize);
+    }
+
+    [Fact]
+    public void Apply_NullProperties_SkipsSilently()    {
         var table = TestItemTables.Items((AaBattery, "", 15, null));
         table.Items[new SPTarkov.Server.Core.Models.Common.MongoId(AaBattery)].Properties = null!;
 

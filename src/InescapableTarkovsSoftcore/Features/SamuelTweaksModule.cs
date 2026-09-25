@@ -98,7 +98,16 @@ public sealed class SamuelTweaksModule(
         return changed;
     }
 
-    /// <summary>规则 2：指定父类物品 → Unlootable=false 且 UnlootableFromSide 清空。</summary>
+    /// <summary>
+    /// 规则 2：指定父类、且 <c>Unlootable</c> 存在的物品 → <c>Unlootable=false</c> 且
+    /// <c>UnlootableFromSide</c> 清空；缺失者跳过。
+    /// <para>
+    /// 运行时模型 <c>TemplateItemProperties.Unlootable</c> 为非空 <c>bool</c>（缺省 false），
+    /// 无法区分「属性缺失」与「显式 false」；源 <c>hasProperty(item, "Unlootable")</c> 的桥接取等价实现：
+    /// 仅当 <c>Unlootable</c> 为 true（真实不可掠夺者）时处理。目标物品（臂章 / 近战）本即 Unlootable=true，
+    /// 故行为与源一致；已可掠夺（false）者跳过，避免无意义计数。
+    /// </para>
+    /// </summary>
     internal static int MakeLootable(Dictionary<MongoId, TemplateItem> items, string parentId)
     {
         var changed = 0;
@@ -110,7 +119,7 @@ public sealed class SamuelTweaksModule(
             }
 
             var props = item.Properties;
-            if (props is null)
+            if (props is null || !props.Unlootable)
             {
                 continue;
             }
@@ -126,6 +135,10 @@ public sealed class SamuelTweaksModule(
     /// <summary>
     /// 规则 3：弹匣（父类 = MAGAZINE）宽 1、高 &gt;2、容量在 [MinCapacity, MaxCapacity] →
     /// 高置 2；ExtraSizeDown &gt;0 时再减 1（不跌破 0）。
+    /// <para>
+    /// 源 <c>!height || height &lt;= 2</c>：运行时模型 <c>Height</c> 为非空 <c>int</c>（缺省 0），
+    /// 「缺失」即 0，已由 <c>Height &lt;= 2</c> 覆盖（源 <c>!height</c> 分支在 C# 无对应可空语义）。
+    /// </para>
     /// </summary>
     internal static int ResizeMagazines(Dictionary<MongoId, TemplateItem> items, MagazineResizeConfig config)
     {

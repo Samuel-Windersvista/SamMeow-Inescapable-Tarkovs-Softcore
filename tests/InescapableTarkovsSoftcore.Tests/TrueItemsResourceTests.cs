@@ -73,5 +73,6 @@ public class TrueItemsResourceTests
     }
 
     private static int ListValue(TrueItemsTable table, string id) =>
-        table.List.Single(entry => entry.Id == id).Props.StackMaxSize;
+        table.List.Single(entry => entry.Id == id).Props.StackMaxSize
+        ?? throw new InvalidOperationException($"条目 {id} 缺少 StackMaxSize");
 }

@@ -87,6 +87,22 @@ public class SamuelTweaksModuleTests
         Assert.NotEmpty(armband.Properties.UnlootableFromSide!);
     }
 
+    [Fact]
+    public void MakeLootable_SkipsItemsWithoutUnlootableFlag()
+    {
+        // 运行时 Unlootable 为非空 bool（缺失默认 false）：未标记为不可掠夺者跳过，UnlootableFromSide 不动。
+        var missing = ParentItem(20, SamuelTweaksModule.ArmbandParentId);
+        missing.Properties.Unlootable = false;
+        var present = ParentItem(21, SamuelTweaksModule.ArmbandParentId);
+
+        var report = Apply(SamuelConfig(armor: false, armband: true, melee: false, magazines: false), missing, present);
+
+        Assert.Equal(1, report.ChangedCount);
+        Assert.False(missing.Properties.Unlootable);
+        Assert.NotEmpty(missing.Properties.UnlootableFromSide!);
+        Assert.False(present.Properties.Unlootable);
+    }
+
     // ---------------------------------------------------------------- 规则 3：弹匣缩格
 
     [Theory]
@@ -138,6 +154,19 @@ public class SamuelTweaksModuleTests
 
         Assert.Equal(0, report.ChangedCount);
         Assert.Equal(3, notAMagazine.Properties.Height);
+    }
+
+    [Fact]
+    public void MagazineResize_IgnoresMagazineWithoutHeight()
+    {
+        // 运行时 Height 为非空 int：缺失默认 0 → 已由 Height <= 2 跳过（源 !height || height <= 2）。
+        var noHeight = Magazine(35, width: 1, height: 0, capacity: 30, extraSizeDown: 3);
+
+        var report = Apply(SamuelConfig(armor: false, armband: false, melee: false, magazines: true), noHeight);
+
+        Assert.Equal(0, report.ChangedCount);
+        Assert.Equal(0, noHeight.Properties.Height);
+        Assert.Equal(3, noHeight.Properties.ExtraSizeDown);
     }
 
     [Fact]

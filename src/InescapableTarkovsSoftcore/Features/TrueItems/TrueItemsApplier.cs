@@ -8,11 +8,13 @@ namespace InescapableTarkovsSoftcore.Features.TrueItems;
 /// True Items Redux 纯逻辑应用器（无 I/O）：把内嵌查找表应用到 SPT 模板表。
 /// 语义对齐源 TS（trueStack.ts）：
 /// <list type="bullet">
-///   <item>List 按 <c>_id</c> 精确匹配；ParentList 按 <c>_parent</c> 批量匹配（源实现仅取首个匹配，此处按工单「批量」语义修正）。</item>
+///   <item>List 按 <c>_id</c> 精确匹配；ParentList 按 <c>_parent</c> 批量匹配（源实现 <c>forEachItem</c> 的 if/else-if 结构使 ParentList 分支对子类永不命中、成为死代码，仅可能命中父类自身；本实现按工单「批量」语义应用于全部子类并在此注明）。</item>
+///   <item>条目 <c>StackMaxSize</c> 缺失（null）→ 跳过该条目，不告警、不计数。源对应防御为 DB 物品 <c>_props.StackMaxSize === undefined → continue</c>；运行时该字段为非空 <c>int</c>（缺省 0），无法表达 undefined，故在查找表条目层做等价保护。</item>
 ///   <item><c>StackMaxSize = 条目值 × StackMult</c>，同时置 <c>StackMinRandom = 1</c>。</item>
 ///   <item>medicals 仅对空医疗容器（<c>MaxHpResource</c> 有值且 ≤ 0）生效。</item>
+///   <item>partsnmods 在源中为 ParentSetting（只应用 ParentList；其 List 不参与应用——系源语义）。</item>
 ///   <item>表 <c>Active=false</c> → 整表零变更；未命中 id → 跳过 + 告警。</item>
-///   <item>源 TS 的 <c>_props === undefined</c> 检查在 C# 中以 <c>Properties is null</c> 对应；StackMaxSize 为 int，无 undefined 语义。</item>
+///   <item>源 TS 的 <c>_props === undefined</c> 检查在 C# 中以 <c>Properties is null</c> 对应。</item>
 ///   <item>overrides 最后应用，覆盖查找表结果；key 先按物品 <c>_id</c> 匹配，否则按父类批量。</item>
 /// </list>
 /// 应用顺序对齐源 TS：clothing → provisions → medicals → barter → partsnmods → keycards → overrides。
@@ -36,6 +38,7 @@ public static class TrueItemsApplier
         changed += ApplyList(templates.Provisions, "provisions", false, byId, warnings);
         changed += ApplyList(templates.Medicals, "medicals", true, byId, warnings);
         changed += ApplyList(templates.Barter, "barter", false, byId, warnings);
+        // partsnmods 在源中为 ParentSetting：只应用 ParentList；其 List 不应用系源语义。
         changed += ApplyParents(templates.PartsnMods, "partsnmods", byParent, warnings);
         changed += ApplyParents(templates.Keycards, "keycards", byParent, warnings);
         changed += ApplyOverrides(config.Overrides, byId, byParent, warnings);
@@ -102,6 +105,12 @@ public static class TrueItemsApplier
                 continue;
             }
 
+            // 条目值缺失（源 undefined）→ 跳过（源 continue）。
+            if (entry.Props.StackMaxSize is not int stackMaxSize)
+            {
+                continue;
+            }
+
             var props = item.Properties;
             if (props is null)
             {
@@ -114,7 +123,7 @@ public static class TrueItemsApplier
                 continue;
             }
 
-            props.StackMaxSize = entry.Props.StackMaxSize * table.StackMult;
+            props.StackMaxSize = stackMaxSize * table.StackMult;
             props.StackMinRandom = 1;
             changed++;
         }
@@ -142,6 +151,12 @@ public static class TrueItemsApplier
                 continue;
             }
 
+            // 条目值缺失（源 undefined）→ 跳过（源 continue）。
+            if (entry.StackMaxSize is not int stackMaxSize)
+            {
+                continue;
+            }
+
             foreach (var item in children)
             {
                 if (item.Properties is null)
@@ -149,7 +164,7 @@ public static class TrueItemsApplier
                     continue;
                 }
 
-                item.Properties.StackMaxSize = entry.StackMaxSize * table.StackMult;
+                item.Properties.StackMaxSize = stackMaxSize * table.StackMult;
                 item.Properties.StackMinRandom = 1;
                 changed++;
             }
