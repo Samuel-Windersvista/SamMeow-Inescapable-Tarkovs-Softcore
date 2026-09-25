@@ -11,6 +11,8 @@ public static class FeatureTables
 {
     internal const string ArmbandsResourceName = "InescapableTarkovsSoftcore.antigravArmbands.armbands.json";
 
+    internal const string BackpacksResourceName = "InescapableTarkovsSoftcore.backpacks.backpacks.json";
+
     private static readonly JsonSerializerOptions Options = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -20,6 +22,9 @@ public static class FeatureTables
 
     /// <summary>G4：22 款反重力臂章（id → 减重后的重量）。</summary>
     public static IReadOnlyList<ArmbandEntry> Armbands { get; } = ReadList<ArmbandEntry>(ArmbandsResourceName);
+
+    /// <summary>G5：43 条背包扩容目标（id → 网格宽高）。</summary>
+    public static IReadOnlyList<BackpackEntry> Backpacks { get; } = ReadList<BackpackEntry>(BackpacksResourceName);
 
     private static IReadOnlyList<T> ReadList<T>(string resourceName)
     {
@@ -41,4 +46,20 @@ public sealed class ArmbandEntry
 
     [JsonPropertyName("weight")]
     public double Weight { get; init; }
+}
+
+/// <summary>背包扩容条目。</summary>
+public sealed class BackpackEntry
+{
+    [JsonPropertyName("id")]
+    public string Id { get; init; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; init; } = string.Empty;
+
+    [JsonPropertyName("cellsH")]
+    public int CellsH { get; init; }
+
+    [JsonPropertyName("cellsV")]
+    public int CellsV { get; init; }
 }

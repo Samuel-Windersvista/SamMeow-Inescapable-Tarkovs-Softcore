@@ -38,6 +38,7 @@ InescapableTarkovsSoftcore.sln
 config/default-config.json              受控默认配置模板（JSONC）
 data/                                   功能查找表（EmbeddedResource 源文件）
   antigravArmbands/armbands.json        G4 反重力臂章表（22 款）
+  backpacks/backpacks.json              G5 背包扩容表（43 条）
 src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务端 mod）
   Config/                               配置模型与加载器
   Features/                             变换层接缝与编排器
