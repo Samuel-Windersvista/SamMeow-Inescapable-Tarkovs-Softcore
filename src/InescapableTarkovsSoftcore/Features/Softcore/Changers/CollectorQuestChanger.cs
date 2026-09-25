@@ -30,10 +30,10 @@ public sealed class CollectorQuestChanger : ISoftcoreChanger
             return;
         }
 
-        var quest = context.Templates.Quests.Values.FirstOrDefault(quest => quest.Name == CollectorQuestName);
+        var quest = context.Tables.Templates.Quests.Values.FirstOrDefault(quest => quest.Name == CollectorQuestName);
         if (quest is null)
         {
-            log.Warn("doCollectorQuestRedone: 未找到 Collector 任务，跳过");
+            log.Warn("未找到 Collector 任务，跳过");
             return;
         }
 

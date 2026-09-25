@@ -14,16 +14,15 @@ public sealed class FuelConsumptionChanger : ISoftcoreChanger
         }
 
         var multiplier = options.FuelConsumptionMultiplier;
-        if (multiplier <= 0)
+        if (!SoftcoreTime.TryMultiplier(multiplier, "fuelConsumptionMultiplier", log))
         {
-            log.Warn($"fuelConsumption: 倍率 {multiplier} 非法（须 > 0），跳过");
             return;
         }
 
-        var settings = context.Hideout.Settings;
+        var settings = context.Tables.Hideout.Settings;
         if (settings?.GeneratorFuelFlowRate is null)
         {
-            log.Warn("fuelConsumption: 未找到 hideout.settings.generatorFuelFlowRate，跳过");
+            log.Warn("未找到 hideout.settings.generatorFuelFlowRate，跳过");
             return;
         }
 

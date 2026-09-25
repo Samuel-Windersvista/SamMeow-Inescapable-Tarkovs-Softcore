@@ -24,6 +24,7 @@
     <EmbeddedResource Include="..\..\data\trueitems\provisions.json" LogicalName="InescapableTarkovsSoftcore.trueitems.provisions.json" />
     <EmbeddedResource Include="..\..\data\antigravArmbands\armbands.json" LogicalName="InescapableTarkovsSoftcore.antigravArmbands.armbands.json" />
     <EmbeddedResource Include="..\..\data\backpacks\backpacks.json" LogicalName="InescapableTarkovsSoftcore.backpacks.backpacks.json" />
+    <EmbeddedResource Include="..\..\data\softcore\scavcase.json" LogicalName="InescapableTarkovsSoftcore.softcore.scavcase.json" />
   </ItemGroup>
 
 </Project>

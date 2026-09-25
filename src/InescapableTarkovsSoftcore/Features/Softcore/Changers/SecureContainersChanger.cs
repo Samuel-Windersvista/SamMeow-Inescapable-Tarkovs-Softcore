@@ -44,14 +44,14 @@ public sealed class SecureContainersChanger : ISoftcoreChanger
     private static void ApplyProgressive(SoftcoreContext context, SoftcoreChangeLog log)
     {
         // 新档起始安全容器 = 2×2 腰包。
-        foreach (var profile in context.Templates.Profiles.Values)
+        foreach (var profile in context.Tables.Templates.Profiles.Values)
         {
             SetStartingContainer(profile.Bear, log);
             SetStartingContainer(profile.Usec, log);
         }
 
         // Peacekeeper 下架 Beta：置零而非删除（删除 assort 项会导致问题）。
-        if (context.Traders.TryGetValue(Traders.PEACEKEEPER, out var peacekeeper) && peacekeeper.Assort is not null)
+        if (context.Tables.Traders.TryGetValue(Traders.PEACEKEEPER, out var peacekeeper) && peacekeeper.Assort is not null)
         {
             foreach (var item in peacekeeper.Assort.Items.Where(item => item.Template == ItemTpl.SECURE_CONTAINER_BETA))
             {
@@ -64,7 +64,7 @@ public sealed class SecureContainersChanger : ISoftcoreChanger
         }
 
         // 邪教徒圈：把「腰包」直接奖励替换为 Kappa。
-        var rewards = context.HideoutConfig.CultistCircle?.DirectRewards;
+        var rewards = context.Services.HideoutConfig.CultistCircle?.DirectRewards;
         if (rewards is not null)
         {
             foreach (var reward in rewards)
@@ -79,9 +79,9 @@ public sealed class SecureContainersChanger : ISoftcoreChanger
         }
 
         // 追加自定义升级配方（幂等：按配方 Id 去重）。
-        if (context.Hideout.Production is not null)
+        if (context.Tables.Hideout.Production is not null)
         {
-            var recipes = context.Hideout.Production.Recipes;
+            var recipes = context.Tables.Hideout.Production.Recipes;
             foreach (var recipe in ContainerRecipes.All)
             {
                 if (recipes.All(existing => existing.Id != recipe.Id))
@@ -97,9 +97,9 @@ public sealed class SecureContainersChanger : ISoftcoreChanger
     {
         foreach (var (template, cellsV, cellsH) in Sizes)
         {
-            if (!SoftcoreGrids.TrySetCells(context.Templates, template, cellsV, cellsH))
+            if (!SoftcoreGrids.TrySetCells(context.Tables.Templates, template, cellsV, cellsH))
             {
-                log.Warn($"modifyContainer: 未找到安全容器 {template}，跳过");
+                log.Warn($"未找到安全容器 {template}，跳过");
                 continue;
             }
 

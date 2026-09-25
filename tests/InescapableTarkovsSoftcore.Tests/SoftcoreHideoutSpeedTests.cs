@@ -1,5 +1,6 @@
 using InescapableTarkovsSoftcore.Features.Softcore;
 using InescapableTarkovsSoftcore.Features.Softcore.Changers;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Eft.Hideout;
 using SPTarkov.Server.Core.Models.Enums;
 using SPTarkov.Server.Core.Models.Enums.Hideout;
@@ -69,6 +70,39 @@ public class SoftcoreHideoutSpeedTests
 
         Assert.Equal(0, log.ChangedCount);
         Assert.Equal(1.0, hideout.Settings!.GeneratorFuelFlowRate);
+    }
+
+    [Fact]
+    public void Construction_UsesJsHalfUpRounding()
+    {
+        var context = NewContext(out var hideout);
+        context.Config.FasterHideoutConstruction.HideoutConstructionTimeMultiplier = 2;
+        hideout.Areas!.Add(SoftcoreTestData.NewAreaWithStage(HideoutAreas.Generator, 1));
+
+        new FasterHideoutConstructionChanger().Apply(context, new SoftcoreChangeLog());
+
+        // JS Math.round(0.5) = 1（C# 银行家舍入会得 0）。
+        Assert.Equal(1d, hideout.Areas[0].Stages!["1"].ConstructionTime);
+    }
+
+    [Fact]
+    public void SetBitcoinPriceTo100k_Enabled_RewritesHandbookPrice()
+    {
+        var templates = SoftcoreTestData.NewTemplates(new HandbookBase
+        {
+            Categories = [],
+            Items = [SoftcoreTestData.NewHandbookItem(ItemTpl.BARTER_PHYSICAL_BITCOIN, 225000)]
+        });
+        var config = new Config.SoftcoreModuleConfig();
+        config.FasterBitcoinFarming.SetBitcoinPriceTo100k = true;
+        var context = SoftcoreTestData.NewContext(
+            templates, SoftcoreTestData.NewHideout(), SoftcoreTestData.NewTraders(), SoftcoreTestData.NewHideoutConfig(), config);
+
+        new FasterBitcoinFarmingChanger().Apply(context, new SoftcoreChangeLog());
+
+        Assert.Equal(
+            100000d,
+            templates.Handbook.Items.Single(item => (string)item.Id == ItemTpl.BARTER_PHYSICAL_BITCOIN).Price);
     }
 
     private static SoftcoreContext NewContext(out HideoutTable hideout, HideoutSettingsBase? settings = null)

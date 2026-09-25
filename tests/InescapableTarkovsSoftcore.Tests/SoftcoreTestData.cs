@@ -28,7 +28,7 @@ internal static class SoftcoreTestData
 
     public const string AssortItemId = "000000000000000000000003";
 
-    public static TemplateTable NewTemplates() => new()
+    public static TemplateTable NewTemplates(HandbookBase? handbook = null) => new()
     {
         Items = new Dictionary<MongoId, TemplateItem>(),
         Profiles = new Dictionary<string, ProfileSides>(),
@@ -44,7 +44,7 @@ internal static class SoftcoreTestData
         Tapes = null!,
         Endings = null!,
         RepeatableQuests = null!,
-        Handbook = null!,
+        Handbook = handbook!,
         Customization = null!,
         Dialogue = null!,
         Prices = null!,
@@ -226,15 +226,51 @@ internal static class SoftcoreTestData
         GlobalTable? global = null) => new()
     {
         Config = config ?? new SoftcoreModuleConfig(),
-        Templates = templates,
-        Hideout = hideout,
-        Traders = traders,
-        HideoutConfig = hideoutConfig,
-        ScavCase = scavCase,
-        Global = global
+        Tables = new SoftcoreTables
+        {
+            Templates = templates,
+            Hideout = hideout,
+            Traders = traders,
+            Global = global
+        },
+        Services = new SoftcoreServices
+        {
+            HideoutConfig = hideoutConfig,
+            ScavCase = scavCase
+        }
     };
 
     public static ListOrT<string> ListOf(params string[] items) => new([.. items], null);
+
+    public static TemplateItem NewTemplateItem(string id, string parent, bool questItem = false, string type = "Item") => new()
+    {
+        Id = id,
+        Parent = parent,
+        Type = type,
+        Properties = new TemplateItemProperties { QuestItem = questItem }
+    };
+
+    public static HandbookItem NewHandbookItem(string id, double price) => new()
+    {
+        Id = id,
+        ParentId = "",
+        Price = price
+    };
+
+    public static Trader NewTraderWithAssort(params string[] templates) => new()
+    {
+        Assort = new TraderAssort
+        {
+            Items = [.. templates.Select((template, index) => new Item
+            {
+                Id = $"00000000000000000000e{index:D3}",
+                Template = template
+            })]
+        },
+        Base = null!,
+        Dialogue = null!,
+        QuestAssort = null!
+    };
 
     // ---- G6-B 夹具 ----
 

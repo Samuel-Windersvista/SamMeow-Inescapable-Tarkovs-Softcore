@@ -14,16 +14,15 @@ public sealed class FasterHideoutConstructionChanger : ISoftcoreChanger
         }
 
         var multiplier = options.HideoutConstructionTimeMultiplier;
-        if (multiplier <= 0)
+        if (!SoftcoreTime.TryMultiplier(multiplier, "hideoutConstructionTimeMultiplier", log))
         {
-            log.Warn($"fasterHideoutConstruction: 倍率 {multiplier} 非法（须 > 0），跳过");
             return;
         }
 
-        var areas = context.Hideout.Areas;
+        var areas = context.Tables.Hideout.Areas;
         if (areas is null)
         {
-            log.Warn("fasterHideoutConstruction: 未找到 hideout.areas，跳过");
+            log.Warn("未找到 hideout.areas，跳过");
             return;
         }
 
@@ -36,7 +35,7 @@ public sealed class FasterHideoutConstructionChanger : ISoftcoreChanger
 
             foreach (var stage in area.Stages.Values)
             {
-                stage.ConstructionTime = Math.Round(stage.ConstructionTime / multiplier);
+                stage.ConstructionTime = SoftcoreTime.ScaleRound(stage.ConstructionTime, multiplier);
                 log.Changed();
             }
         }

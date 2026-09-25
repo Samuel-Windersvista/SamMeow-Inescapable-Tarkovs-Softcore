@@ -17,10 +17,10 @@ public sealed class GymTrainingChanger : ISoftcoreChanger
             return;
         }
 
-        var pain = context.Global?.Configuration?.Health?.Effects?.SevereMusclePain;
+        var pain = context.Tables.Global?.Configuration?.Health?.Effects?.SevereMusclePain;
         if (pain is null)
         {
-            log.Warn("allowGymTrainingWithMusclePain: 未找到 globals.config.Health.Effects.SevereMusclePain，跳过");
+            log.Warn("未找到 globals.config.Health.Effects.SevereMusclePain，跳过");
             return;
         }
 

@@ -4,10 +4,12 @@ namespace InescapableTarkovsSoftcore.Features.Softcore.Changers;
 
 /// <summary>
 /// G6-B 比特币农场：比特币配方时间 = round(原时间 / baseBitcoinTimeMultiplier)，
-/// 并设置 GPU 效率 gpuBoostRate（SURV：1.3 / 1.0；setBitcoinPriceTo100k=false）。
+/// 设置 GPU 效率 gpuBoostRate（SURV：1.3 / 1.0）；可选把比特币手册价改回 10 万。
 /// </summary>
 public sealed class FasterBitcoinFarmingChanger : ISoftcoreChanger
 {
+    public const long BitcoinPriceTo100k = 100_000;
+
     public string Name => "fasterBitcoinFarming";
 
     public void Apply(SoftcoreContext context, SoftcoreChangeLog log)
@@ -18,33 +20,48 @@ public sealed class FasterBitcoinFarmingChanger : ISoftcoreChanger
             return;
         }
 
-        if (options.BaseBitcoinTimeMultiplier > 0)
+        if (SoftcoreTime.TryMultiplier(options.BaseBitcoinTimeMultiplier, "baseBitcoinTimeMultiplier", log))
         {
-            var recipes = context.Hideout.Production?.Recipes;
+            var recipes = context.Tables.Hideout.Production?.Recipes;
             if (recipes is not null)
             {
                 foreach (var recipe in recipes.Where(recipe => recipe.EndProduct == ItemTpl.BARTER_PHYSICAL_BITCOIN))
                 {
-                    recipe.ProductionTime = Math.Round(recipe.ProductionTime / options.BaseBitcoinTimeMultiplier);
+                    recipe.ProductionTime = SoftcoreTime.ScaleRound(recipe.ProductionTime, options.BaseBitcoinTimeMultiplier);
                     log.Changed();
                 }
             }
 
-            if (context.Hideout.Settings is not null)
+            if (context.Tables.Hideout.Settings is not null)
             {
-                context.Hideout.Settings.GpuBoostRate = options.GpuEfficiency;
+                context.Tables.Hideout.Settings.GpuBoostRate = options.GpuEfficiency;
                 log.Changed();
             }
-        }
-        else
-        {
-            log.Warn($"fasterBitcoinFarming: 倍率 {options.BaseBitcoinTimeMultiplier} 非法（须 > 0），跳过");
         }
 
         if (options.SetBitcoinPriceTo100k)
         {
-            // 需 HandbookHelper 改写手册价；本版本未实现（SURV 默认关闭）。
-            log.Warn("fasterBitcoinFarming: setBitcoinPriceTo100k 需 HandbookHelper，本版本未实现，跳过");
+            ApplyBitcoinPrice(context, log);
         }
+    }
+
+    private static void ApplyBitcoinPrice(SoftcoreContext context, SoftcoreChangeLog log)
+    {
+        var handbookItems = context.Tables.Templates.Handbook?.Items;
+        if (handbookItems is null)
+        {
+            log.Warn("未找到 handbook.items，跳过 setBitcoinPriceTo100k");
+            return;
+        }
+
+        var bitcoin = handbookItems.FirstOrDefault(item => item.Id == ItemTpl.BARTER_PHYSICAL_BITCOIN);
+        if (bitcoin is null)
+        {
+            log.Warn("handbook 中未找到比特币，跳过 setBitcoinPriceTo100k");
+            return;
+        }
+
+        bitcoin.Price = BitcoinPriceTo100k;
+        log.Changed();
     }
 }

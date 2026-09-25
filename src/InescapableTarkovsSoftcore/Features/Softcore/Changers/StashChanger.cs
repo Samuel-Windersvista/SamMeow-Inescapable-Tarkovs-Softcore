@@ -63,7 +63,7 @@ public sealed class StashChanger : ISoftcoreChanger
 
     private static void ApplyProgressiveStash(SoftcoreContext context, SoftcoreChangeLog log)
     {
-        foreach (var profile in context.Templates.Profiles.Values)
+        foreach (var profile in context.Tables.Templates.Profiles.Values)
         {
             foreach (var side in new[] { profile.Bear, profile.Usec })
             {
@@ -111,9 +111,9 @@ public sealed class StashChanger : ISoftcoreChanger
     {
         foreach (var (template, rows) in StashSizes)
         {
-            if (!SoftcoreGrids.TrySetCells(context.Templates, template, rows))
+            if (!SoftcoreGrids.TrySetCells(context.Tables.Templates, template, rows))
             {
-                log.Warn($"doBiggerStash: 未找到仓库 {template}，跳过");
+                log.Warn($"未找到仓库 {template}，跳过");
                 continue;
             }
 
@@ -123,10 +123,10 @@ public sealed class StashChanger : ISoftcoreChanger
 
     private static void ApplyLessCurrencyForConstruction(SoftcoreContext context, SoftcoreChangeLog log)
     {
-        var stashArea = context.Hideout.Areas?.FirstOrDefault(area => area.Type == HideoutAreas.Stash);
+        var stashArea = context.Tables.Hideout.Areas?.FirstOrDefault(area => area.Type == HideoutAreas.Stash);
         if (stashArea?.Stages is null)
         {
-            log.Warn("doLessCurrencyForConstruction: 未找到仓库阶段，跳过");
+            log.Warn("未找到仓库阶段，跳过 lessCurrencyForConstruction");
             return;
         }
 
@@ -146,10 +146,10 @@ public sealed class StashChanger : ISoftcoreChanger
 
     private static void ApplyEasierLoyalty(SoftcoreContext context, SoftcoreChangeLog log)
     {
-        var stashArea = context.Hideout.Areas?.FirstOrDefault(area => area.Type == HideoutAreas.Stash);
+        var stashArea = context.Tables.Hideout.Areas?.FirstOrDefault(area => area.Type == HideoutAreas.Stash);
         if (stashArea?.Stages is null)
         {
-            log.Warn("doEasierLoyalty: 未找到仓库阶段，跳过");
+            log.Warn("未找到仓库阶段，跳过 easierLoyalty");
             return;
         }
 

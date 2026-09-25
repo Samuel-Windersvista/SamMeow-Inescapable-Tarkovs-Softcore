@@ -49,9 +49,9 @@ public sealed class HideoutContainersChanger : ISoftcoreChanger
     {
         foreach (var (template, cellsV, cellsH) in Sizes)
         {
-            if (!SoftcoreGrids.TrySetCells(context.Templates, template, cellsV, cellsH))
+            if (!SoftcoreGrids.TrySetCells(context.Tables.Templates, template, cellsV, cellsH))
             {
-                log.Warn($"doBiggerHideoutContainers: 未找到容器 {template}，跳过");
+                log.Warn($"未找到容器 {template}，跳过");
                 continue;
             }
 
@@ -65,7 +65,7 @@ public sealed class HideoutContainersChanger : ISoftcoreChanger
         var siccFilter = GetFirstFilter(context, ItemTpl.CONTAINER_SICC);
         if (docsFilter is null || siccFilter is null)
         {
-            log.Warn("doSiccCaseBuff: 未找到 Docs 或 SICC 允许清单，跳过");
+            log.Warn("未找到 Docs 或 SICC 允许清单，跳过");
             return;
         }
 
@@ -81,7 +81,7 @@ public sealed class HideoutContainersChanger : ISoftcoreChanger
 
     private static HashSet<MongoId>? GetFirstFilter(SoftcoreContext context, string template)
     {
-        if (!context.Templates.Items.TryGetValue(template, out var item))
+        if (!context.Tables.Templates.Items.TryGetValue(template, out var item))
         {
             return null;
         }

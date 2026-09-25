@@ -4,22 +4,38 @@ using SPTarkov.Server.Core.Models.Spt.Tables;
 
 namespace InescapableTarkovsSoftcore.Features.Softcore;
 
-/// <summary>Softcore 子变换器执行上下文：Softcore 段配置 + 所需数据库表 + 藏身处内部配置。</summary>
+/// <summary>
+/// Softcore 子变换器执行上下文，按「逐次表」与「DI 单例服务」分组，
+/// 避免新增依赖时到处改动子变换器签名（防 Shotgun Surgery）。
+/// </summary>
 public sealed class SoftcoreContext
 {
     public required SoftcoreModuleConfig Config { get; init; }
 
+    /// <summary>逐次注入的数据库表。</summary>
+    public required SoftcoreTables Tables { get; init; }
+
+    /// <summary>DI 单例配置服务。</summary>
+    public required SoftcoreServices Services { get; init; }
+}
+
+/// <summary>数据库表分组。Templates/Hideout/Traders 必填；Global 仅 G6-B 健身使用（可空）。</summary>
+public sealed class SoftcoreTables
+{
     public required TemplateTable Templates { get; init; }
 
     public required HideoutTable Hideout { get; init; }
 
     public required TradersTable Traders { get; init; }
 
-    /// <summary>SPT5 内部配置（等价于源 TS 的 ConfigServer.getConfig(HIDEOUT)，以构造函数注入获取）。</summary>
-    public required HideoutConfig HideoutConfig { get; init; }
-
     /// <summary>全局表（G6-B 健身效果等；G6-A 子变换器不使用）。</summary>
     public GlobalTable? Global { get; init; }
+}
+
+/// <summary>DI 单例配置分组。HideoutConfig 必填；ScavCaseConfig 仅 G6-B 使用（可空）。</summary>
+public sealed class SoftcoreServices
+{
+    public required HideoutConfig HideoutConfig { get; init; }
 
     /// <summary>ScavCase 内部配置（G6-B；G6-A 子变换器不使用）。</summary>
     public ScavCaseConfig? ScavCase { get; init; }

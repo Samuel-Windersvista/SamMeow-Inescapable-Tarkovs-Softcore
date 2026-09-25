@@ -31,20 +31,20 @@ public class SoftcoreCraftingTimeTests
     public void HideoutSkillExpFix_DividesHoursByTen()
     {
         var context = NewContext(out _);
-        context.HideoutConfig.HoursForSkillCrafting = 100;
+        context.Services.HideoutConfig.HoursForSkillCrafting = 100;
 
         new FasterCraftingTimeChanger().Apply(context, new SoftcoreChangeLog());
 
-        Assert.Equal(10, context.HideoutConfig.HoursForSkillCrafting);
+        Assert.Equal(10, context.Services.HideoutConfig.HoursForSkillCrafting);
     }
 
     [Fact]
     public void CultistCircle_DividesRewardTimes()
     {
         var context = NewContext(out _);
-        context.HideoutConfig.CultistCircle!.HideoutTaskRewardTimeSeconds = 100;
-        context.HideoutConfig.CultistCircle.CraftTimeThresholds = [SoftcoreTestData.NewCraftTimeThreshold(100)];
-        context.HideoutConfig.CultistCircle.DirectRewards =
+        context.Services.HideoutConfig.CultistCircle!.HideoutTaskRewardTimeSeconds = 100;
+        context.Services.HideoutConfig.CultistCircle.CraftTimeThresholds = [SoftcoreTestData.NewCraftTimeThreshold(100)];
+        context.Services.HideoutConfig.CultistCircle.DirectRewards =
         [
             new SPTarkov.Server.Core.Models.Spt.Config.DirectRewardSettings
             {
@@ -57,9 +57,9 @@ public class SoftcoreCraftingTimeTests
 
         new FasterCraftingTimeChanger().Apply(context, new SoftcoreChangeLog());
 
-        Assert.Equal(200, context.HideoutConfig.CultistCircle.HideoutTaskRewardTimeSeconds);
-        Assert.Equal(200, context.HideoutConfig.CultistCircle.CraftTimeThresholds[0].CraftTimeSeconds);
-        Assert.Equal(200, context.HideoutConfig.CultistCircle.DirectRewards[0].CraftTimeSeconds);
+        Assert.Equal(200, context.Services.HideoutConfig.CultistCircle.HideoutTaskRewardTimeSeconds);
+        Assert.Equal(200, context.Services.HideoutConfig.CultistCircle.CraftTimeThresholds[0].CraftTimeSeconds);
+        Assert.Equal(200, context.Services.HideoutConfig.CultistCircle.DirectRewards[0].CraftTimeSeconds);
     }
 
     [Fact]
@@ -88,6 +88,33 @@ public class SoftcoreCraftingTimeTests
 
         Assert.Equal(0, log.ChangedCount);
         Assert.Equal(1000d, hideout.Production.Recipes[0].ProductionTime);
+    }
+
+    [Fact]
+    public void HideoutSkillExpFix_ClampsToOne()
+    {
+        var context = NewContext(out _);
+        context.Services.HideoutConfig.HoursForSkillCrafting = 10;
+        context.Config.FasterCraftingTime.HideoutSkillExpFix.HideoutSkillExpMultiplier = 100000;
+
+        new FasterCraftingTimeChanger().Apply(context, new SoftcoreChangeLog());
+
+        // 10 / 100000 → 0；clamp ≥ 1 防止 core 除零。
+        Assert.Equal(1, context.Services.HideoutConfig.HoursForSkillCrafting);
+    }
+
+    [Fact]
+    public void Warning_UsesSoftcoreChangerPrefix()
+    {
+        var context = NewContext(out _);
+        context.Config.FasterCraftingTime.BaseCraftingTimeMultiplier = 0;
+        var log = new SoftcoreChangeLog { Changer = new FasterCraftingTimeChanger().Name };
+
+        new FasterCraftingTimeChanger().Apply(context, log);
+
+        Assert.Contains(
+            log.Warnings,
+            warning => warning.StartsWith("[ITS] softcore.fasterCraftingTime:", StringComparison.Ordinal));
     }
 
     private static SoftcoreContext NewContext(out SPTarkov.Server.Core.Models.Spt.Tables.HideoutTable hideout)

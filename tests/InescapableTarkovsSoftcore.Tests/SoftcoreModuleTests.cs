@@ -42,6 +42,19 @@ public class SoftcoreModuleTests
         Assert.False(module.IsEnabled(config));
     }
 
+    [Fact]
+    public void Module_Warnings_CarrySoftcoreChangerPrefix()
+    {
+        var module = NewModule(SoftcoreTestData.NewHideoutConfig(), out var context);
+        context.Config.Softcore.FasterCraftingTime.BaseCraftingTimeMultiplier = 0;
+
+        var report = module.Apply(context);
+
+        Assert.Contains(
+            report.Warnings,
+            warning => warning.StartsWith("[ITS] softcore.fasterCraftingTime:", StringComparison.Ordinal));
+    }
+
     private static SoftcoreModule NewModule(HideoutConfig hideoutConfig, out ModContext context)
     {
         var templates = BuildTemplates();

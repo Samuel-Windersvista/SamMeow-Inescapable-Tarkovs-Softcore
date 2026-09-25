@@ -51,79 +51,69 @@ public sealed class FasterCraftingTimeChanger : ISoftcoreChanger
 
     private static void ApplyAllRecipes(SoftcoreContext context, double multiplier, SoftcoreChangeLog log)
     {
-        if (!IsUsableMultiplier(multiplier, "baseCraftingTimeMultiplier", log))
+        if (!SoftcoreTime.TryMultiplier(multiplier, "baseCraftingTimeMultiplier", log)
+            || !TryGetRecipes(context, log, out var recipes))
         {
             return;
         }
 
-        var recipes = context.Hideout.Production?.Recipes;
-        if (recipes is null)
+        foreach (var recipe in recipes!.Where(recipe => !ExcludedFromGlobal.Contains((string)recipe.EndProduct)))
         {
-            log.Warn("fasterCraftingTime: 未找到 hideout.production.recipes，跳过");
-            return;
-        }
-
-        foreach (var recipe in recipes.Where(recipe => !ExcludedFromGlobal.Contains((string)recipe.EndProduct)))
-        {
-            recipe.ProductionTime = Math.Ceiling(recipe.ProductionTime / multiplier);
+            recipe.ProductionTime = SoftcoreTime.ScaleCeil(recipe.ProductionTime, multiplier);
             log.Changed();
         }
     }
 
     private static void ApplyForEndProduct(SoftcoreContext context, string endProduct, double multiplier, SoftcoreChangeLog log)
     {
-        if (!IsUsableMultiplier(multiplier, $"fasterProduction[{endProduct}]", log))
+        if (!SoftcoreTime.TryMultiplier(multiplier, $"fasterProduction[{endProduct}]", log)
+            || !TryGetRecipes(context, log, out var recipes))
         {
             return;
         }
 
-        var recipes = context.Hideout.Production?.Recipes;
-        if (recipes is null)
+        foreach (var recipe in recipes!.Where(recipe => recipe.EndProduct == endProduct))
         {
-            log.Warn("fasterCraftingTime: 未找到 hideout.production.recipes，跳过");
-            return;
-        }
-
-        foreach (var recipe in recipes.Where(recipe => recipe.EndProduct == endProduct))
-        {
-            recipe.ProductionTime = Math.Ceiling(recipe.ProductionTime / multiplier);
+            recipe.ProductionTime = SoftcoreTime.ScaleCeil(recipe.ProductionTime, multiplier);
             log.Changed();
         }
     }
 
     private static void ApplyHideoutSkillExpFix(SoftcoreContext context, double multiplier, SoftcoreChangeLog log)
     {
-        if (!IsUsableMultiplier(multiplier, "hideoutSkillExpMultiplier", log))
+        if (!SoftcoreTime.TryMultiplier(multiplier, "hideoutSkillExpMultiplier", log))
         {
             return;
         }
 
-        // 源 TS：hoursForSkillCrafting /= multiplier（SPT5 字段为 int，采用截断赋值）。
-        context.HideoutConfig.HoursForSkillCrafting = (int)(context.HideoutConfig.HoursForSkillCrafting / multiplier);
+        // 源 TS：hoursForSkillCrafting /= multiplier；SPT5 字段为 int。
+        // clamp ≥ 1：防止过大倍率得 0，触发 core 除零（Inf/NaN 经验损坏）。
+        var hours = context.Services.HideoutConfig.HoursForSkillCrafting;
+        context.Services.HideoutConfig.HoursForSkillCrafting = Math.Max(1, (int)(hours / multiplier));
         log.Changed();
     }
 
     private static void ApplyCultistCircle(SoftcoreContext context, double multiplier, SoftcoreChangeLog log)
     {
-        if (!IsUsableMultiplier(multiplier, "fasterCultistCircle", log))
+        if (!SoftcoreTime.TryMultiplier(multiplier, "fasterCultistCircle", log))
         {
             return;
         }
 
-        var circle = context.HideoutConfig.CultistCircle;
+        var circle = context.Services.HideoutConfig.CultistCircle;
         if (circle is null)
         {
-            log.Warn("fasterCraftingTime: 未找到 cultistCircle 配置，跳过");
+            log.Warn("未找到 cultistCircle 配置，跳过");
             return;
         }
 
-        circle.HideoutTaskRewardTimeSeconds = (int)Math.Ceiling(circle.HideoutTaskRewardTimeSeconds / multiplier);
+        circle.HideoutTaskRewardTimeSeconds = (int)SoftcoreTime.ScaleCeil(circle.HideoutTaskRewardTimeSeconds, multiplier);
 
         if (circle.CraftTimeThresholds is not null)
         {
             foreach (var threshold in circle.CraftTimeThresholds)
             {
-                threshold.CraftTimeSeconds = (int)Math.Ceiling(threshold.CraftTimeSeconds / multiplier);
+                threshold.CraftTimeSeconds = (int)SoftcoreTime.ScaleCeil(threshold.CraftTimeSeconds, multiplier);
             }
         }
 
@@ -131,21 +121,25 @@ public sealed class FasterCraftingTimeChanger : ISoftcoreChanger
         {
             foreach (var reward in circle.DirectRewards)
             {
-                reward.CraftTimeSeconds = (int)Math.Ceiling(reward.CraftTimeSeconds / multiplier);
+                reward.CraftTimeSeconds = (int)SoftcoreTime.ScaleCeil(reward.CraftTimeSeconds, multiplier);
             }
         }
 
         log.Changed();
     }
 
-    private static bool IsUsableMultiplier(double multiplier, string name, SoftcoreChangeLog log)
+    private static bool TryGetRecipes(
+        SoftcoreContext context,
+        SoftcoreChangeLog log,
+        out List<SPTarkov.Server.Core.Models.Eft.Hideout.HideoutProduction>? recipes)
     {
-        if (multiplier > 0)
+        recipes = context.Tables.Hideout.Production?.Recipes;
+        if (recipes is not null)
         {
             return true;
         }
 
-        log.Warn($"fasterCraftingTime: 倍率 {name}={multiplier} 非法（须 > 0），跳过");
+        log.Warn("未找到 hideout.production.recipes，跳过");
         return false;
     }
 }

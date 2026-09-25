@@ -42,17 +42,24 @@ public sealed class SoftcoreModule(
         var softcoreContext = new SoftcoreContext
         {
             Config = config,
-            Templates = context.Tables.TemplateTable,
-            Hideout = context.Tables.HideoutTable,
-            Traders = context.Tables.TradersTable,
-            HideoutConfig = hideoutConfig,
-            Global = context.Tables.GlobalTable,
-            ScavCase = scavCaseConfig
+            Tables = new SoftcoreTables
+            {
+                Templates = context.Tables.TemplateTable,
+                Hideout = context.Tables.HideoutTable,
+                Traders = context.Tables.TradersTable,
+                Global = context.Tables.GlobalTable
+            },
+            Services = new SoftcoreServices
+            {
+                HideoutConfig = hideoutConfig,
+                ScavCase = scavCaseConfig
+            }
         };
 
         var log = new SoftcoreChangeLog();
         foreach (var changer in Changers)
         {
+            log.Changer = changer.Name;
             try
             {
                 changer.Apply(softcoreContext, log);
