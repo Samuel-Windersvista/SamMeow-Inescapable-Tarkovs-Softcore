@@ -230,8 +230,11 @@ IMM `StackMult: 2`、43 条：保留 20 个注射器；删 Morphine + 全部 10 
   - 同类方向语义（T09 审查确认保留，属源真实行为）：`fasterMoonshineProduction` / `fasterPurifiedWaterProduction` ÷0.3 ≈ 时间 ×3.33；`fasterCultistCircle` ÷0.5 = 时间 ×2。名称 `faster*` 但时间变长。
   - ScavCase 缺陷状态（T13 核销用）：**P1**（`ScavCaseOptionsChanger.ts:109` `doBetterRewards` 未完全优化）——本行已按 T09 F7 补齐买断规则 + 弹药箱 StackSlots 定价补丁（确定性部分）；**P3**（`ScavCaseOptionsChanger.ts:117-132` 弹药箱价按 `StackSlots` 逐项读取）——已于 F7 落地（`ScavCaseChanger.ResolveHandbookPrice`）；**P4**（数据硬编码）——已外置 `data/softcore/scavcase.json`（EmbeddedResource）。仍未复刻项：`ItemFilterService`（boss/reward 黑名单）与 `SeasonalEventService`（季节性）——5.0 core `ScavCaseRewardGenerator` 已代做，故未注入。
 - G6-C 经济/商人/保险（T10）：跳蚤 1 级开放 · 仅全新品 · 价格 ×1.5 · 和平主义白名单（价 ×2/3/5）· 以物易物（现金 5%、价差 30、报价 5–13、非堆叠 1–4、最多 4 换 1）· 商人收价上调（忠诚 +5%/级，Peacekeeper 基准 35+7）· Therapist 收窄 / Ragman 贵重 / Skier 信息 · Fence 15 报价 · Skier 欧元化 · 购买上限 ×2 · 保险 Prapor 70%/80%/240–360、Therapist 60%/50%/120–240（另设 runInterval 10s、储存 30 天、不留附件 50%）。
-  - 数据外置：`assets/fleamarket.ts` + `keys.ts` + `itemBaseClasses.ts` → `data/softcore/fleamarket.json`（EmbeddedResource）；计数 whitelist 29 / actualBaseClasses 111 / fleaBarterRequestWhitelist 22 / requestWhitelist 16 / fleaListingsWhitelistHandBook 20 / pacifistFenceItemBaseWhitelist 17 / bsgBlacklist 353 / itemBaseClasses 93 / questKeys 57 / markedKeys 6。
-  - 未迁移项（记录）：`priceRebalance`（SURV 关闭，changer 未迁移，启用时告警）；Skier 任务奖励欧元化（`Quest.Rewards` 模型未迁移，告警）；`markedKeys` 的 `KEY_SHARED_BEDROOM_MARKED` 在 SPT5 ItemTpl 不存在（源 7 项 → 6 项）。
+  - 数据外置：`assets/fleamarket.ts` + `keys.ts` + `itemBaseClasses.ts` → `data/softcore/fleamarket.json`（EmbeddedResource）；计数 whitelist 29 / actualBaseClasses 111 / fleaBarterRequestWhitelist 22 / requestWhitelist 16 / fleaListingsWhitelistHandBook 20 / pacifistFenceItemBaseWhitelist 17 / bsgBlacklist 353 / itemBaseClasses 93 / questKeys 57 / markedKeys 7。出处与再生成命令见 `data/softcore/MANIFEST.md`（工具 `scripts/tools/`）。
+  - `markedKeys` 的 `KEY_SHARED_BEDROOM_MARKED` 在 SPT5 改名为 `KEY_SUBSTATION_MARKED`（`62987dfc402c7f69bf010923`），已补入 → 7 项全量落地。
+  - ragfair 报价数改为「Clear + `default` + 弹药箱父类键」同范围（5–13），保证所有物品类一致（SPT 先查父类键、再回退 `default`）。
+  - Skier 任务奖励欧元化已实现（遍历 Skier 任务 `Rewards.Success`，RUB→EUR，`Math.ceil` 同步 `StackObjectsCount` 与 `reward.Value`）。
+  - 未迁移项（记录）：`priceRebalance`（SURV 关闭，changer 未迁移，启用时告警）。
 - 藏身处容器（SURV 覆盖终态，cellsV × cellsH）：药品 10×10 · Holodilnick 10×10 · 弹匣 7×10 · 物品 6×6 · 武器 6×7 · 钥匙工具 5×5 · THICC 武器 6×14 · THICC 物品 6×14
 - 安全容器（SURV）：腰包 2×4（源 TS 注释「腰包是 2x4」）· Alpha 3×3 · Beta 3×4 · Epsilon 3×5 · Gamma 4×5 · Kappa 5×5
 - 经济：和平主义跳蚤（1 级开放、仅全新品、价 ×1.5）· 以物易物（现金 5%、价差 30%、报价 5–13、最多 4 换 1）· priceRebalance 关

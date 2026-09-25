@@ -40,6 +40,8 @@ data/                                   功能查找表（EmbeddedResource 源�
   trueitems/                            G2 True Items 六张表
   antigravArmbands/armbands.json        G4 反重力臂章表（22 款）
   backpacks/backpacks.json              G5 背包扩容表（43 条）
+  softcore/scavcase.json                G6-B ScavCase 数据表（配方/区间/黑名单）
+  softcore/fleamarket.json              G6-C 跳蚤市场数据表（白/黑名单等；见 softcore/MANIFEST.md）
 src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务端 mod）
   Config/                               配置模型与加载器
   Features/                             变换层接缝与编排器
@@ -47,6 +49,7 @@ src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务�
 tests/InescapableTarkovsSoftcore.Tests/ xUnit 测试工程
 assets/launcher/bg.png                  启动器背景静态件（随 overlay 部署）
 scripts/build.ps1                       构建 + overlay 组装脚本
+scripts/tools/                          数据再生成工具（gen-fleamarket.ps1 / dump-spt-symbols.cs）
 build/overlay/                          构建产物（git 忽略）
 release/                                发行归档约定目录
 ```
