@@ -161,30 +161,38 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
 
         foreach (var (name, type) in sections)
         {
-            ValidateSection(root, name, warnings, type);
+            ValidateSection(root, name, name, warnings, type);
         }
     }
 
     /// <summary>
-    /// 校验单个配置节：缺键保留默认；节值为 null 或非对象则以「类型非法」处理（告警 + 移除 → 回落默认）；
-    /// 未知叶键 / 叶键类型非法则移除该键（回落默认）并告警。
+    /// 校验单个配置节 / 子节：缺键保留默认；节值为 null 或非对象则以「类型非法」处理
+    /// （告警 + 移除 → 回落默认）；未知叶键 / 叶键类型非法则移除该键（回落默认）并告警；
+    /// 对象型键视为子节递归校验，路径以点号拼接用于告警定位。
     /// </summary>
-    private static void ValidateSection(JsonObject root, string sectionName, List<string> warnings, Type sectionType)
+    private static void ValidateSection(JsonObject parent, string key, string path, List<string> warnings, Type sectionType)
     {
-        if (!root.TryGetPropertyValue(sectionName, out var node))
+        if (!parent.TryGetPropertyValue(key, out var node))
         {
             return;
         }
 
         if (node is not JsonObject section)
         {
-            warnings.Add($"[ITS] 配置节 \"{sectionName}\" 类型非法（应为对象），使用默认值");
-            root.Remove(sectionName);
+            warnings.Add($"[ITS] 配置节 \"{path}\" 类型非法（应为对象），使用默认值");
+            parent.Remove(key);
             return;
         }
 
+        ValidateObject(section, path, warnings, sectionType);
+    }
+
+    /// <summary>逐键校验一个已确认是对象的配置节 / 子节。</summary>
+    private static void ValidateObject(JsonObject section, string path, List<string> warnings, Type sectionType)
+    {
         var boolKeys = new HashSet<string>(StringComparer.Ordinal);
         var numberKeys = new HashSet<string>(StringComparer.Ordinal);
+        var objectKeys = new Dictionary<string, Type>(StringComparer.Ordinal);
         var allowed = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var property in sectionType.GetProperties())
@@ -197,9 +205,13 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
             {
                 boolKeys.Add(name);
             }
-            else if (type == typeof(double) || type == typeof(float) || type == typeof(int) || type == typeof(long))
+            else if (IsNumeric(type))
             {
                 numberKeys.Add(name);
+            }
+            else if (type != typeof(string) && type.IsClass)
+            {
+                objectKeys[name] = type;
             }
         }
 
@@ -207,8 +219,14 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
         {
             if (!allowed.Contains(key))
             {
-                warnings.Add($"[ITS] 未知配置键 \"{sectionName}.{key}\"，已忽略");
+                warnings.Add($"[ITS] 未知配置键 \"{path}.{key}\"，已忽略");
                 section.Remove(key);
+                continue;
+            }
+
+            if (objectKeys.TryGetValue(key, out var childType))
+            {
+                ValidateSection(section, key, $"{path}.{key}", warnings, childType);
                 continue;
             }
 
@@ -218,11 +236,14 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
 
             if (!valid)
             {
-                warnings.Add($"[ITS] 配置键 \"{sectionName}.{key}\" 类型非法，使用默认值");
+                warnings.Add($"[ITS] 配置键 \"{path}.{key}\" 类型非法，使用默认值");
                 section.Remove(key);
             }
         }
     }
+
+    private static bool IsNumeric(Type type) =>
+        type == typeof(double) || type == typeof(float) || type == typeof(int) || type == typeof(long);
 
     private static string JsonName(PropertyInfo property) =>
         property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;

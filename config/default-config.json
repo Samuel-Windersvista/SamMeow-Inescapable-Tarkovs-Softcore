@@ -10,7 +10,25 @@
 
   // 以下各功能组开关；具体参数随各自工单扩展
   "samuelTweaks": {
-    "enabled": true
+    // G1 总开关
+    "enabled": true,
+    // 护甲弹挂冲突修复：含 RigLayoutName 的弹挂甲 → BlocksArmorVest=false
+    "armorConflictFix": true,
+    // 可掠夺物品
+    "lootableItems": {
+      // 臂章（父类 5447e1d04bdc2dff2f8b4567）可掠夺
+      "armband": true,
+      // 近战武器（类目 5b3f15d486f77432d0509248）可掠夺
+      "meleeWeapons": true
+    },
+    // 扩展弹匣缩格：宽 1 且高 >2 且容量在 [minCapacity, maxCapacity] → 高 2、ExtraSizeDown−1
+    "magazineResize": {
+      "enabled": true,
+      "minCapacity": 10,
+      "maxCapacity": 50
+    },
+    // 启动器自定义背景（构建期静态件：assets/launcher/bg.png → SPT_Data/images/launcher/bg.png）
+    "customBackground": true
   },
   "trueItems": {
     "enabled": true
