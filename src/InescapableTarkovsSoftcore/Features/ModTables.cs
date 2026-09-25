@@ -1,0 +1,30 @@
+using SPTarkov.DI.Annotations;
+using SPTarkov.Server.Core.Models.Spt.Tables;
+
+namespace InescapableTarkovsSoftcore.Features;
+
+/// <summary>
+/// SPT 数据库表访问载体：编排器与功能模块经此读取内存表，避免各自注入多张表。
+/// 表实例由 SPT 注册为单例（见 KB api-notes-5.0：应注入具体表类型）。
+/// </summary>
+[Injectable(InjectionType.Singleton)]
+public sealed class ModTables(
+    TemplateTable templateTable,
+    HideoutTable hideoutTable,
+    LocationTable locationTable,
+    TradersTable tradersTable,
+    GlobalTable globalTable)
+{
+    public TemplateTable TemplateTable { get; } = templateTable;
+
+    public HideoutTable HideoutTable { get; } = hideoutTable;
+
+    public LocationTable LocationTable { get; } = locationTable;
+
+    public TradersTable TradersTable { get; } = tradersTable;
+
+    public GlobalTable GlobalTable { get; } = globalTable;
+
+    /// <summary>测试用空载体：不含真实表；测试中的 fake 模块不得触碰表。</summary>
+    public static ModTables Empty { get; } = new(null!, null!, null!, null!, null!);
+}
