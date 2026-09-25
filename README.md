@@ -35,7 +35,10 @@ SPT 5.0 服务端整合 mod。把 Life in Norvinsk v0.3.2 的六组功能 + 战�
 
 ```
 InescapableTarkovsSoftcore.sln
+config/default-config.json              受控默认配置模板（JSONC）
 src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务端 mod）
+  Config/                               配置模型与加载器
+  Features/                             变换层接缝与编排器
 tests/InescapableTarkovsSoftcore.Tests/ xUnit 测试工程
 scripts/build.ps1                       构建 + overlay 组装脚本
 build/overlay/                          构建产物（git 忽略）
@@ -54,8 +57,10 @@ powershell -File scripts/build.ps1 -SptRuntimeDir "D:\Other\SPT_Runtime"
 ```powershell
 dotnet build -c Release          # Release 构建
 dotnet test                      # 运行单测
-powershell -File scripts/build.ps1     # 组装 overlay 产物
+powershell -File scripts/build.ps1     # 组装 overlay 产物（拷贝配置模板为 config.json）
 ```
+
+`scripts/build.ps1` 不再内联生成配置，而是把受控模板 `config/default-config.json` 逐字节拷贝为产物 `config.json`。
 
 ### 产物布局
 
@@ -68,7 +73,7 @@ build/overlay/
       └─ mods/
          └─ com.sammeow.inescapable-softcore/
             ├─ InescapableTarkovsSoftcore.dll
-            ├─ config.json      # 默认配置壳（general.enabled / general.debug）
+            ├─ config.json      # config/default-config.json 的逐字节拷贝
             └─ Resources/       # 数据资产占位（后续工单填充）
 ```
 
@@ -84,6 +89,43 @@ build/overlay/
 ### 发行归档
 
 `release/` 存放版本化发行包（`[5]核心-Inescapable-Tarkovs-Softcore-<版本>.zip`）。除 `.gitkeep` 与 `release/README.md` 外，目录内容被 git 忽略；每个发行以 git tag + 构建产物为准。
+
+## 配置
+
+### 文件位置
+
+- 模板（仓库内受控源）：`config/default-config.json`
+- 运行时实例（随 overlay 分发）：`SPT_Runtime\user\mods\com.sammeow.inescapable-softcore\config.json`（`scripts/build.ps1` 从模板拷贝）
+
+若运行时缺失 `config.json`，mod 会从内嵌默认模板重建该文件并输出告警（不崩溃）。
+
+### 格式与容错
+
+- 支持 `//` 行注释与尾随逗号（JSONC）。
+- 未知键：输出告警并忽略该键。
+- 缺键：使用内置默认值。
+- 值类型非法（如 `enabled` 写成字符串）：输出告警并回落默认值。
+- 改动配置后需重启 SPT 服务器生效。
+
+### 结构
+
+```jsonc
+{
+  "general": { "enabled": true, "debug": false },   // 总开关；general.enabled=false 跳过全部功能组
+  "samuelTweaks": { "enabled": true },              // G1
+  "trueItems": { "enabled": true },                 // G2
+  "noFirHideout": { "enabled": true },              // G3
+  "antigravArmbands": { "enabled": true },          // G4
+  "backpacks": { "enabled": true },                 // G5
+  "softcore": { "enabled": true },                  // G6
+  "raidDuration": {                                 // G7
+    "enabled": true,
+    "multiplier": 1.0                               // 全局战局时长倍率；1.0 = 原版，2.0 = 翻倍
+  }
+}
+```
+
+各组开关独立；`raidDuration.multiplier` 调整战局时长倍率（例如 `2.0` 使地图时限翻倍）。
 
 ## 状态
 
