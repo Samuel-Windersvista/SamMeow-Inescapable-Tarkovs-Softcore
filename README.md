@@ -45,6 +45,7 @@ src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务�
   Features/                             变换层接缝与编排器
     TrueItems/                          G2 True Items 查找表模型 / 加载器 / 应用器 / 模块
 tests/InescapableTarkovsSoftcore.Tests/ xUnit 测试工程
+assets/launcher/bg.png                  启动器背景静态件（随 overlay 部署）
 scripts/build.ps1                       构建 + overlay 组装脚本
 build/overlay/                          构建产物（git 忽略）
 release/                                发行归档约定目录
@@ -76,6 +77,10 @@ powershell -File scripts/build.ps1     # 组装 overlay 产物（拷贝配置模
 ```
 build/overlay/
 └─ SPT_Runtime/
+   ├─ SPT_Data/
+   │  └─ images/
+   │     └─ launcher/
+   │        └─ bg.png    # G1 启动器背景（assets/launcher/bg.png 的拷贝；customBackground 关闭时省略）
    └─ user/
       └─ mods/
          └─ com.sammeow.inescapable-softcore/
@@ -90,8 +95,16 @@ build/overlay/
 |---|---|
 | `build/overlay/` | 游戏根 `E:\Game\EFT_Offline\SPT_5xx` |
 | `build/overlay/SPT_Runtime/user/mods/com.sammeow.inescapable-softcore/` | `SPT_Runtime\user\mods\com.sammeow.inescapable-softcore\` |
+| `build/overlay/SPT_Runtime/SPT_Data/images/launcher/bg.png` | `SPT_Runtime\SPT_Data\images\launcher\bg.png` |
 
 部署经 MO2 overlay 目录 `[5]核心-Inescapable-Tarkovs-Softcore-<版本>` 向目标实例投影；不直接写入游戏目录。
+
+#### 启动器背景路径核对（T07）
+
+- SPT5 实例中启动器背景的真实路径为 `E:\Game\EFT_Offline\SPT_5xx\SPT_Runtime\SPT_Data\images\launcher\bg.png`（同目录另有 `side_bear.png` / `side_scav.png` / `side_usec.png` 启动器 UI 资源）。
+- 服务端 `SPTarkov.Server.Core.Utils.ImageRouteImporter`（`IOnLoad`）扫描 `SPT_Data/images/` 目录并按相对路径生成 `/files/<相对路径>` 路由，故该文件即 `/files/launcher/bg`——与旧 mod `ImageRouter.addRoute("/files/launcher/bg", …)` 的语义一致。
+- 因此本工单采用**静态件覆盖**：`scripts/build.ps1` 在 `samuelTweaks.customBackground`（且 `samuelTweaks.enabled`）为真时，把 `assets/launcher/bg.png` 拷入 overlay 的上述路径；不注册服务端路由、不引入任何客户端 DLL（PerformanceTweaks 不在本工单范围）。
+- 背景改动需重启 SPT 服务器（以及清理启动器缓存）后可见。
 
 ### 发行归档
 
@@ -120,7 +133,21 @@ build/overlay/
 ```jsonc
 {
   "general": { "enabled": true, "debug": false },   // 总开关；general.enabled=false 跳过全部功能组
-  "samuelTweaks": { "enabled": true },              // G1
+<<<<<<< HEAD
+  "samuelTweaks": {                                 // G1 Samuel's Tweaks
+    "enabled": true,                                // 组开关；false 时整组跳过（零变更）
+    "armorConflictFix": true,                       // 护甲弹挂冲突修复
+    "lootableItems": {                              // 可掠夺开关（可分别控制）
+      "armband": true,                              // 臂章（父类 5447e1d04bdc2dff2f8b4567）
+      "meleeWeapons": true                          // 近战武器（类目 5b3f15d486f77432d0509248）
+    },
+    "magazineResize": {                             // 扩展弹匣缩格
+      "enabled": true,
+      "minCapacity": 10,                            // 容量下界（含）
+      "maxCapacity": 50                             // 容量上界（含）
+    },
+    "customBackground": true                        // 构建期静态件（重启 + 重新打包生效）
+  },
   "trueItems": {                                   // G2
     "enabled": true,
     "overrides": {}                                 // id → 目标堆叠值；最后应用，覆盖内嵌查找表
@@ -159,6 +186,13 @@ build/overlay/
 应用规则：`StackMaxSize = 条目值 × StackMult`，并置 `StackMinRandom = 1`；未命中 `_id` 输出告警并跳过；
 表 `Active=false` 时该文件零变更。`overrides` 在所有查找表之后应用：key 先按物品 `_id` 精确匹配，
 匹配不到再按父类 `_parent` 批量匹配。
+
+G1 语义：
+
+- `armorConflictFix`：含 `_props.RigLayoutName` 的弹挂甲 → `_props.BlocksArmorVest=false`（弹挂与护甲不再互斥）。
+- `lootableItems.armband` / `meleeWeapons`：对应父类物品 → `Unlootable=false` 且 `UnlootableFromSide=[]`。
+- `magazineResize`：弹匣（父类 `5448bc234bdc2d3c308b4569`）宽 1、高 >2、容量在 `[minCapacity, maxCapacity]` 时 → 高置 2、`ExtraSizeDown` 减 1（不跌破 0）。
+- `customBackground`：仅构建期生效，控制是否把 `assets/launcher/bg.png` 拷入 overlay；运行时无操作。
 
 ## 状态
 

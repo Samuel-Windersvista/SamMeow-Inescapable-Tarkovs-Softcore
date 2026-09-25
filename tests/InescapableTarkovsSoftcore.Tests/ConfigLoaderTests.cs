@@ -141,30 +141,37 @@ public class ConfigLoaderTests
         Assert.Equal(expected, actual);
     }
 
-    /// <summary>按模型反射构造一份包含全部键（类型正确）的 JSON，用于验证键集派生覆盖模型。</summary>
+    /// <summary>按模型反射构造一份包含全部键（类型正确、递归展开子节）的 JSON，用于验证键集派生覆盖模型。</summary>
     private static string BuildAllModelKeysJson()
     {
         var root = new JsonObject();
         foreach (var section in typeof(SoftcoreConfig).GetProperties())
         {
-            var sectionObject = new JsonObject();
-            foreach (var leaf in section.PropertyType.GetProperties())
-            {
-                var leafType = Nullable.GetUnderlyingType(leaf.PropertyType) ?? leaf.PropertyType;
-                sectionObject[JsonName(leaf)] = leafType.IsGenericType
-                    && leafType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
-                        ? new JsonObject()
-                        : leafType == typeof(bool)
-                            ? JsonValue.Create(true)
-                            : leafType == typeof(string)
-                                ? JsonValue.Create("x")
-                                : JsonValue.Create(1.0);
-            }
-
-            root[JsonName(section)] = sectionObject;
+            root[JsonName(section)] = BuildObject(section.PropertyType);
         }
 
         return root.ToJsonString();
+    }
+
+    private static JsonObject BuildObject(Type type)
+    {
+        var obj = new JsonObject();
+        foreach (var property in type.GetProperties())
+        {
+            var name = JsonName(property);
+            var leafType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+            obj[name] = leafType switch
+            {
+                var t when t == typeof(bool) => JsonValue.Create(true),
+                var t when t == typeof(string) => JsonValue.Create("x"),
+                var t when t == typeof(double) || t == typeof(float) || t == typeof(int) || t == typeof(long)
+                    => JsonValue.Create(1.0),
+                var t when typeof(System.Collections.IDictionary).IsAssignableFrom(t) => new JsonObject(),
+                _ => BuildObject(leafType)
+            };
+        }
+
+        return obj;
     }
 
     private static IEnumerable<string> FlattenSectionKeys(JsonNode node)
@@ -173,9 +180,9 @@ public class ConfigLoaderTests
         {
             if (sectionValue is JsonObject section)
             {
-                foreach (var (leafName, _) in section)
+                foreach (var path in FlattenObjectKeys(section, sectionName))
                 {
-                    yield return $"{sectionName}.{leafName}";
+                    yield return path;
                 }
             }
             else
@@ -185,14 +192,63 @@ public class ConfigLoaderTests
         }
     }
 
+    private static IEnumerable<string> FlattenObjectKeys(JsonObject obj, string prefix)
+    {
+        foreach (var (leafName, value) in obj)
+        {
+            var path = $"{prefix}.{leafName}";
+            if (value is JsonObject nested)
+            {
+                foreach (var child in FlattenObjectKeys(nested, path))
+                {
+                    yield return child;
+                }
+            }
+            else
+            {
+                yield return path;
+            }
+        }
+    }
+
     private static IEnumerable<string> ExpectedKeyPaths(Type rootType)
     {
         foreach (var section in rootType.GetProperties())
         {
             var sectionName = JsonName(section);
-            foreach (var leaf in section.PropertyType.GetProperties())
+            foreach (var path in ExpectedObjectKeyPaths(section.PropertyType, sectionName))
             {
-                yield return $"{sectionName}.{JsonName(leaf)}";
+                yield return path;
+            }
+        }
+    }
+
+    private static IEnumerable<string> ExpectedObjectKeyPaths(Type type, string prefix)
+    {
+        foreach (var property in type.GetProperties())
+        {
+            var path = $"{prefix}.{JsonName(property)}";
+            var leafType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+
+            // 字典型叶键（如 overrides）在模板中以空对象出现，键集展开不计入路径。
+            if (typeof(System.Collections.IDictionary).IsAssignableFrom(leafType))
+            {
+                continue;
+            }
+
+            if (leafType == typeof(bool)
+                || leafType == typeof(string)
+                || leafType == typeof(double) || leafType == typeof(float)
+                || leafType == typeof(int) || leafType == typeof(long))
+            {
+                yield return path;
+            }
+            else
+            {
+                foreach (var child in ExpectedObjectKeyPaths(leafType, path))
+                {
+                    yield return child;
+                }
             }
         }
     }
