@@ -245,7 +245,7 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
 
             var valid = boolKeys.Contains(key)
                 ? value is JsonValue boolValue && boolValue.TryGetValue<bool>(out _)
-                : !numberKeys.Contains(key) || IsValidNumber(value, numberKeys[key]);
+                : !numberKeys.ContainsKey(key) || IsValidNumber(value, numberKeys[key]);
 
             if (!valid)
             {
