@@ -64,7 +64,13 @@ public class SoftcoreModuleTests
         var tables = new ModTables(templates, hideout, null!, traders, null!);
         context = new ModContext(new SoftcoreConfig(), tables);
 
-        return new SoftcoreModule(new TestSptLogger<SoftcoreModule>(), hideoutConfig, SoftcoreTestData.NewScavCaseConfig());
+        return new SoftcoreModule(
+            new TestSptLogger<SoftcoreModule>(),
+            hideoutConfig,
+            SoftcoreTestData.NewScavCaseConfig(),
+            SoftcoreTestData.NewRagfairConfig(),
+            SoftcoreTestData.NewTraderConfig(),
+            SoftcoreTestData.NewInsuranceConfig());
     }
 
     private static TemplateTable BuildTemplates()

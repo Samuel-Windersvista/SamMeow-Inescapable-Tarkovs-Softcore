@@ -3,6 +3,7 @@ using InescapableTarkovsSoftcore.Features.Softcore.Changers;
 using SPTarkov.Common.Models.Logging;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Models.Spt.Config;
+using TraderConfig = SPTarkov.Server.Core.Models.Spt.Config.TraderConfig;
 
 namespace InescapableTarkovsSoftcore.Features.Softcore;
 
@@ -15,7 +16,10 @@ namespace InescapableTarkovsSoftcore.Features.Softcore;
 public sealed class SoftcoreModule(
     ISptLogger<SoftcoreModule> logger,
     HideoutConfig hideoutConfig,
-    ScavCaseConfig scavCaseConfig) : FeatureModule<SoftcoreModuleConfig>
+    ScavCaseConfig scavCaseConfig,
+    RagfairConfig ragfairConfig,
+    TraderConfig traderConfig,
+    InsuranceConfig insuranceConfig) : FeatureModule<SoftcoreModuleConfig>
 {
     public override string Id => "softcore";
 
@@ -32,7 +36,10 @@ public sealed class SoftcoreModule(
         new FuelConsumptionChanger(),
         new FasterBitcoinFarmingChanger(),
         new ScavCaseChanger(),
-        new GymTrainingChanger()
+        new GymTrainingChanger(),
+        new EconomyOptionsChanger(),
+        new TraderChangesChanger(),
+        new InsuranceChangesChanger()
     ];
 
     protected override SoftcoreModuleConfig Section(SoftcoreConfig root) => root.Softcore;
@@ -52,7 +59,10 @@ public sealed class SoftcoreModule(
             Services = new SoftcoreServices
             {
                 HideoutConfig = hideoutConfig,
-                ScavCase = scavCaseConfig
+                ScavCase = scavCaseConfig,
+                Ragfair = ragfairConfig,
+                Trader = traderConfig,
+                Insurance = insuranceConfig
             }
         };
 

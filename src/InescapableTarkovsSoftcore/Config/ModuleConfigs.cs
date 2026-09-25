@@ -125,6 +125,215 @@ public sealed class SoftcoreModuleConfig : ModuleConfig
     /// <summary>允许在严重肌肉疼痛时以 75% 效率健身（G6-B）。</summary>
     [JsonPropertyName("allowGymTrainingWithMusclePain")]
     public bool AllowGymTrainingWithMusclePain { get; set; } = true;
+
+    /// <summary>经济选项（G6-C）。</summary>
+    [JsonPropertyName("economyOptions")]
+    public EconomyOptions EconomyOptions { get; set; } = new();
+
+    /// <summary>商人更改（G6-C）。</summary>
+    [JsonPropertyName("traderChanges")]
+    public TraderChangesOptions TraderChanges { get; set; } = new();
+
+    /// <summary>保险更改（G6-C）。</summary>
+    [JsonPropertyName("insuranceChanges")]
+    public InsuranceChangesOptions InsuranceChanges { get; set; } = new();
+}
+
+/// <summary>整数区间（Min/Max）。</summary>
+public sealed class IntRange
+{
+    [JsonPropertyName("min")]
+    public int Min { get; set; }
+
+    [JsonPropertyName("max")]
+    public int Max { get; set; }
+}
+
+/// <summary>经济选项根（默认值 = SURV 终态）。</summary>
+public sealed class EconomyOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("disableFleaMarketCompletely")]
+    public bool DisableFleaMarketCompletely { get; set; }
+
+    [JsonPropertyName("priceRebalance")]
+    public PriceRebalanceOptions PriceRebalance { get; set; } = new();
+
+    [JsonPropertyName("pacifistFleaMarket")]
+    public PacifistFleaMarketOptions PacifistFleaMarket { get; set; } = new();
+
+    [JsonPropertyName("barterEconomy")]
+    public BarterEconomyOptions BarterEconomy { get; set; } = new();
+
+    [JsonPropertyName("otherFleaMarketChanges")]
+    public OtherFleaMarketChangesOptions OtherFleaMarketChanges { get; set; } = new();
+}
+
+/// <summary>价格再平衡（SURV 关闭）。</summary>
+public sealed class PriceRebalanceOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; }
+
+    [JsonPropertyName("itemFixes")]
+    public bool ItemFixes { get; set; } = true;
+}
+
+/// <summary>和平主义跳蚤市场选项。</summary>
+public sealed class PacifistFleaMarketOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("whitelist")]
+    public EconomyToggle Whitelist { get; set; } = new() { PriceMultiplier = 2 };
+
+    [JsonPropertyName("questKeys")]
+    public EconomyToggle QuestKeys { get; set; } = new() { PriceMultiplier = 3 };
+
+    [JsonPropertyName("markedKeys")]
+    public EconomyToggle MarkedKeys { get; set; } = new() { PriceMultiplier = 5 };
+}
+
+/// <summary>带价格倍率的白名单开关。</summary>
+public sealed class EconomyToggle
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("priceMultiplier")]
+    public double PriceMultiplier { get; set; } = 1;
+}
+
+/// <summary>以物易物经济选项。</summary>
+public sealed class BarterEconomyOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>允许现金购买的比例（%）；SPT 内部用 100 - 该值 作为 barter 概率。</summary>
+    [JsonPropertyName("cashOffersPercentage")]
+    public double CashOffersPercentage { get; set; } = 5;
+
+    [JsonPropertyName("barterPriceVariance")]
+    public double BarterPriceVariance { get; set; } = 30;
+
+    [JsonPropertyName("offerItemCount")]
+    public IntRange OfferItemCount { get; set; } = new() { Min = 5, Max = 13 };
+
+    [JsonPropertyName("nonStackableCount")]
+    public IntRange NonStackableCount { get; set; } = new() { Min = 1, Max = 4 };
+
+    [JsonPropertyName("itemCountMax")]
+    public int ItemCountMax { get; set; } = 4;
+}
+
+/// <summary>其他跳蚤市场选项。</summary>
+public sealed class OtherFleaMarketChangesOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("sellingOnFlea")]
+    public bool SellingOnFlea { get; set; }
+
+    [JsonPropertyName("fleaMarketOpenAtLevel")]
+    public double FleaMarketOpenAtLevel { get; set; } = 1;
+
+    [JsonPropertyName("fleaPricesIncreased")]
+    public double FleaPricesIncreased { get; set; } = 1.5;
+
+    [JsonPropertyName("fleaPristineItems")]
+    public bool FleaPristineItems { get; set; } = true;
+
+    [JsonPropertyName("onlyFoundInRaidItemsAllowedForBarters")]
+    public bool OnlyFoundInRaidItemsAllowedForBarters { get; set; }
+}
+
+/// <summary>商人更改选项。</summary>
+public sealed class TraderChangesOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("betterSalesToTraders")]
+    public bool BetterSalesToTraders { get; set; } = true;
+
+    [JsonPropertyName("alternativeCategories")]
+    public bool AlternativeCategories { get; set; } = true;
+
+    [JsonPropertyName("pacifistFence")]
+    public PacifistFenceOptions PacifistFence { get; set; } = new();
+
+    [JsonPropertyName("reasonablyPricedCases")]
+    public bool ReasonablyPricedCases { get; set; } = true;
+
+    [JsonPropertyName("skierUsesEuros")]
+    public bool SkierUsesEuros { get; set; } = true;
+
+    [JsonPropertyName("biggerLimits")]
+    public BiggerLimitsOptions BiggerLimits { get; set; } = new();
+}
+
+/// <summary>和平主义 Fence 选项。</summary>
+public sealed class PacifistFenceOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("numberOfFenceOffers")]
+    public int NumberOfFenceOffers { get; set; } = 15;
+}
+
+/// <summary>购买上限选项。</summary>
+public sealed class BiggerLimitsOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("multiplier")]
+    public double Multiplier { get; set; } = 2.0;
+}
+
+/// <summary>保险更改选项。</summary>
+public sealed class InsuranceChangesOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("praporInsuranceChanges")]
+    public TraderInsuranceOptions PraporInsuranceChanges { get; set; } = new()
+    {
+        ReturnChance = 70,
+        ReturnTime = new IntRange { Min = 240, Max = 360 },
+        InsuranceCostPercentage = 80
+    };
+
+    [JsonPropertyName("therapistInsuranceChanges")]
+    public TraderInsuranceOptions TherapistInsuranceChanges { get; set; } = new()
+    {
+        ReturnChance = 60,
+        ReturnTime = new IntRange { Min = 120, Max = 240 },
+        InsuranceCostPercentage = 50
+    };
+}
+
+/// <summary>单个商人的保险更改。</summary>
+public sealed class TraderInsuranceOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("returnChance")]
+    public double ReturnChance { get; set; } = 70;
+
+    [JsonPropertyName("returnTime")]
+    public IntRange ReturnTime { get; set; } = new() { Min = 240, Max = 360 };
+
+    [JsonPropertyName("insuranceCostPercentage")]
+    public double InsuranceCostPercentage { get; set; } = 80;
 }
 
 /// <summary>制造加速选项（默认值 = SURV 终态）。</summary>

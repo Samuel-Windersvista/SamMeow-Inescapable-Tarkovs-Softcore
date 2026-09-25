@@ -32,11 +32,20 @@ public sealed class SoftcoreTables
     public GlobalTable? Global { get; init; }
 }
 
-/// <summary>DI 单例配置分组。HideoutConfig 必填；ScavCaseConfig 仅 G6-B 使用（可空）。</summary>
+/// <summary>DI 单例配置分组。HideoutConfig 必填；其余仅 G6-B/G6-C 使用（可空）。</summary>
 public sealed class SoftcoreServices
 {
     public required HideoutConfig HideoutConfig { get; init; }
 
     /// <summary>ScavCase 内部配置（G6-B；G6-A 子变换器不使用）。</summary>
     public ScavCaseConfig? ScavCase { get; init; }
+
+    /// <summary>跳蚤市场内部配置（G6-C 经济）。</summary>
+    public RagfairConfig? Ragfair { get; init; }
+
+    /// <summary>商人内部配置（G6-C Fence）。</summary>
+    public TraderConfig? Trader { get; init; }
+
+    /// <summary>保险内部配置（G6-C）。</summary>
+    public InsuranceConfig? Insurance { get; init; }
 }

@@ -47,7 +47,7 @@ internal static class SoftcoreTestData
         Handbook = handbook!,
         Customization = null!,
         Dialogue = null!,
-        Prices = null!,
+        Prices = new Dictionary<MongoId, double>(),
         DefaultEquipmentPresets = null!,
         Achievements = null!,
         CustomAchievements = null!,
@@ -223,7 +223,10 @@ internal static class SoftcoreTestData
         HideoutConfig hideoutConfig,
         SoftcoreModuleConfig? config = null,
         ScavCaseConfig? scavCase = null,
-        GlobalTable? global = null) => new()
+        GlobalTable? global = null,
+        RagfairConfig? ragfair = null,
+        TraderConfig? trader = null,
+        InsuranceConfig? insurance = null) => new()
     {
         Config = config ?? new SoftcoreModuleConfig(),
         Tables = new SoftcoreTables
@@ -236,11 +239,76 @@ internal static class SoftcoreTestData
         Services = new SoftcoreServices
         {
             HideoutConfig = hideoutConfig,
-            ScavCase = scavCase
+            ScavCase = scavCase,
+            Ragfair = ragfair,
+            Trader = trader,
+            Insurance = insurance
         }
     };
 
     public static ListOrT<string> ListOf(params string[] items) => new([.. items], null);
+
+    // ---- G6-C 夹具（仅构造子变换器读取的成员，其余必填成员 null! 占位） ----
+
+    public static RagfairConfig NewRagfairConfig() => new()
+    {
+        Sell = new SPTarkov.Server.Core.Models.Spt.Config.Sell
+        {
+            Chance = new SPTarkov.Server.Core.Models.Spt.Config.Chance(),
+            Time = new MinMax<double>()
+        },
+        Dynamic = new SPTarkov.Server.Core.Models.Spt.Config.Dynamic
+        {
+            Barter = new BarterDetails { ItemTplBlacklist = [], ItemTypeBlacklist = [] },
+            Pack = null!,
+            OfferAdjustment = null!,
+            OfferItemCount = new Dictionary<string, MinMax<int>>(),
+            PriceRanges = new PriceRanges { Default = new MinMax<double>(), Preset = new MinMax<double>(), Pack = new MinMax<double>() },
+            IgnoreQualityPriceVarianceBlacklist = [],
+            EndTimeSeconds = new MinMax<int>(),
+            Condition = new Dictionary<MongoId, SPTarkov.Server.Core.Models.Spt.Config.Condition>(),
+            StackablePercent = new MinMax<double>(),
+            NonStackableCount = new MinMax<int>(),
+            Rating = new MinMax<double>(),
+            Armor = null!,
+            OfferCurrencyChangePercent = null!,
+            ShowAsSingleStack = [],
+            Blacklist = new RagfairBlacklist { Custom = [], ArmorPlate = null!, CustomItemCategoryList = [] },
+            UnreasonableModPrices = null!,
+            ItemPriceOverrideRouble = new Dictionary<MongoId, double>()
+        },
+        RunIntervalValues = null!,
+        Traders = new Dictionary<MongoId, bool>()
+    };
+
+    public static TraderConfig NewTraderConfig() => new()
+    {
+        Fence = new FenceConfig
+        {
+            DiscountOptions = new DiscountOptions
+            {
+                WeaponPresetMinMax = new MinMax<int>(),
+                EquipmentPresetMinMax = new MinMax<int>()
+            },
+            WeaponPresetMinMax = new MinMax<int>(),
+            EquipmentPresetMinMax = new MinMax<int>(),
+            ArmorMaxDurabilityPercentMinMax = null!,
+            WeaponDurabilityPercentMinMax = null!,
+            ChancePlateExistsInArmorPercent = null!,
+            ItemStackSizeOverrideMinMax = null!,
+            ItemTypeLimits = new Dictionary<MongoId, int>(),
+            PreventDuplicateOffersOfCategory = [],
+            ItemCategoryRoublePriceLimit = null!,
+            PresetSlotsToRemoveChancePercent = null!,
+            Blacklist = [],
+            CoopExtractGift = null!
+        }
+    };
+
+    public static InsuranceConfig NewInsuranceConfig() => new()
+    {
+        ReturnChancePercent = new Dictionary<MongoId, double>()
+    };
 
     public static TemplateItem NewTemplateItem(string id, string parent, bool questItem = false, string type = "Item") => new()
     {
@@ -385,6 +453,7 @@ internal static class SoftcoreTestData
             },
             Exp = null!,
             MaxMatchingTimeInSeconds = 0,
+            RagFair = System.Activator.CreateInstance<RagfairGlobals>()!,
             Mastering = null!,
             ArenaEftTransferSettings = null!,
             RestrictionsInRaid = null!,
@@ -409,6 +478,41 @@ internal static class SoftcoreTestData
         BotWeaponScatterings = null!,
         ItemPresets = null!,
         InventoryTarcoinMigrationProdAllowedAids = null!
+    };
+
+    /// <summary>最小商人（Assort + Base 忠诚等级 + 保险）。</summary>
+    public static Trader NewTrader(double buyPriceCoefficient = 45) => new()
+    {
+        Assort = new TraderAssort { Items = [], BarterScheme = new Dictionary<MongoId, List<List<BarterScheme>>>() },
+        Base = new TraderBase
+        {
+            Insurance = new TraderInsurance
+            {
+                Availability = true,
+                ExcludedCategory = [],
+                MaxReturnHour = 0,
+                MaxStorageTime = 0,
+                MinPayment = 0,
+                MinReturnHour = 0
+            },
+            ItemsBuy = new ItemBuyData { Category = [], IdList = [] },
+            LoyaltyLevels =
+            [
+                new TraderLoyaltyLevel
+                {
+                    BuyPriceCoefficient = buyPriceCoefficient,
+                    ExchangePriceCoefficient = 0,
+                    HealPriceCoefficient = 0,
+                    InsurancePriceCoefficient = 0,
+                    MinLevel = 1,
+                    MinSalesSum = 100000,
+                    MinStanding = 0,
+                    RepairPriceCoefficient = 0
+                }
+            ]
+        },
+        Dialogue = null!,
+        QuestAssort = null!
     };
 
     /// <summary>断言模板首个网格的 (cellsV, cellsH)。</summary>
