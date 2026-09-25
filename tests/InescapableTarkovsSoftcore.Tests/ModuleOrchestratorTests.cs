@@ -129,6 +129,28 @@ public class ModuleOrchestratorTests
         Assert.Equal(2, report.Modules.Count);
     }
 
+    [Fact]
+    public void Run_FeatureModuleChain_ResolvesSection_ForEnabledAndDisabledBranches()
+    {
+        var executed = new List<string>();
+        IFeatureModule[] modules = [new ChainModule(executed)];
+        var config = new SoftcoreConfig();
+        var orchestrator = CreateOrchestrator(modules, out _);
+
+        // 启用：Apply 经泛型基类转发到「带类型化配置段」的逻辑入口。
+        var enabledReport = orchestrator.Run(config);
+        Assert.Equal(new[] { "trueItems" }, executed);
+        var single = Assert.Single(enabledReport.Modules);
+        Assert.Equal(7, single.ChangedCount);
+
+        // 禁用：IsEnabled 走同一 Section 解析链路。
+        executed.Clear();
+        config.TrueItems.Enabled = false;
+        var disabledReport = orchestrator.Run(config);
+        Assert.Empty(executed);
+        Assert.Contains("trueItems", disabledReport.SkippedModuleIds);
+    }
+
     private static ModuleOrchestrator CreateOrchestrator(IEnumerable<IFeatureModule> modules, out RecordingLogger logger)
     {
         logger = new RecordingLogger();
@@ -165,6 +187,22 @@ public class ModuleOrchestratorTests
             executed.Add(Id);
             onApply?.Invoke();
             return ModuleReport.Ok(Id);
+        }
+    }
+
+    /// <summary>经由 FeatureModule&lt;TConfig&gt; 基类实现，用于钉住 Section→IsEnabled→Apply 转发链路。</summary>
+    private sealed class ChainModule(List<string> executed) : FeatureModule<TrueItemsConfig>
+    {
+        public override string Id => "trueItems";
+
+        public override int Order => ModuleOrders.TrueItems;
+
+        protected override TrueItemsConfig Section(SoftcoreConfig root) => root.TrueItems;
+
+        protected override ModuleReport Apply(ModContext context, TrueItemsConfig config)
+        {
+            executed.Add(Id);
+            return ModuleReport.Ok(Id, 7);
         }
     }
 

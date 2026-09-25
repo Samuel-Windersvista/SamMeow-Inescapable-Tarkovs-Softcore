@@ -25,7 +25,9 @@ public sealed class ModuleOrchestrator(
             return new OrchestrationReport([], [], true, 0, 0, 0);
         }
 
-        var byId = new Dictionary<string, IFeatureModule>(StringComparer.Ordinal);
+        // 按注册顺序去重（保留先注册者）；Dictionary 枚举序无契约保证，故用 List 承载后再稳定排序。
+        var seenIds = new HashSet<string>(StringComparer.Ordinal);
+        var registered = new List<IFeatureModule>();
         foreach (var module in modules)
         {
             if (module is null)
@@ -33,10 +35,13 @@ public sealed class ModuleOrchestrator(
                 continue;
             }
 
-            if (!byId.TryAdd(module.Id, module))
+            if (!seenIds.Add(module.Id))
             {
                 logger.Warning($"[ITS] 检测到重复模块 id \"{module.Id}\"，保留先注册者，忽略后者");
+                continue;
             }
+
+            registered.Add(module);
         }
 
         var context = new ModContext(config, tables);
@@ -44,17 +49,18 @@ public sealed class ModuleOrchestrator(
         var skipped = new List<string>();
 
         // LINQ OrderBy 为稳定排序：同 Order 值保持注册顺序。
-        foreach (var module in byId.Values.OrderBy(module => module.Order))
+        foreach (var module in registered.OrderBy(module => module.Order))
         {
-            if (!module.IsEnabled(config))
-            {
-                skipped.Add(module.Id);
-                logger.Info($"[ITS] {module.Id} 已在配置中禁用，跳过");
-                continue;
-            }
-
             try
             {
+                // IsEnabled 亦置于异常隔离内：模块的配置段解析异常只影响本组（D15）。
+                if (!module.IsEnabled(config))
+                {
+                    skipped.Add(module.Id);
+                    logger.Info($"[ITS] {module.Id} 已在配置中禁用，跳过");
+                    continue;
+                }
+
                 reports.Add(module.Apply(context));
             }
             catch (Exception ex)
