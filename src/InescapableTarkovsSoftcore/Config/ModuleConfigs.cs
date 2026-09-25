@@ -101,6 +101,139 @@ public sealed class SoftcoreModuleConfig : ModuleConfig
     /// <summary>藏身处容器选项（G6-A）。</summary>
     [JsonPropertyName("hideoutContainers")]
     public HideoutContainersOptions HideoutContainers { get; set; } = new();
+
+    /// <summary>制造加速（G6-B）。</summary>
+    [JsonPropertyName("fasterCraftingTime")]
+    public FasterCraftingTimeOptions FasterCraftingTime { get; set; } = new();
+
+    /// <summary>藏身处建设加速（G6-B）。</summary>
+    [JsonPropertyName("fasterHideoutConstruction")]
+    public FasterHideoutConstructionOptions FasterHideoutConstruction { get; set; } = new();
+
+    /// <summary>发电机燃料消耗（G6-B）。</summary>
+    [JsonPropertyName("fuelConsumption")]
+    public FuelConsumptionOptions FuelConsumption { get; set; } = new();
+
+    /// <summary>比特币农场（G6-B）。</summary>
+    [JsonPropertyName("fasterBitcoinFarming")]
+    public FasterBitcoinFarmingOptions FasterBitcoinFarming { get; set; } = new();
+
+    /// <summary>ScavCase 选项（G6-B）。</summary>
+    [JsonPropertyName("scavCaseOptions")]
+    public ScavCaseOptions ScavCaseOptions { get; set; } = new();
+
+    /// <summary>允许在严重肌肉疼痛时以 75% 效率健身（G6-B）。</summary>
+    [JsonPropertyName("allowGymTrainingWithMusclePain")]
+    public bool AllowGymTrainingWithMusclePain { get; set; } = true;
+}
+
+/// <summary>制造加速选项（默认值 = SURV 终态）。</summary>
+public sealed class FasterCraftingTimeOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>全局基础时间倍率；配方时间 = ceil(原时间 / 倍率)。</summary>
+    [JsonPropertyName("baseCraftingTimeMultiplier")]
+    public double BaseCraftingTimeMultiplier { get; set; } = 3;
+
+    [JsonPropertyName("hideoutSkillExpFix")]
+    public HideoutSkillExpFixOptions HideoutSkillExpFix { get; set; } = new();
+
+    [JsonPropertyName("fasterMoonshineProduction")]
+    public FasterProductionOptions FasterMoonshineProduction { get; set; } = new() { BaseCraftingTimeMultiplier = 0.3 };
+
+    [JsonPropertyName("fasterPurifiedWaterProduction")]
+    public FasterProductionOptions FasterPurifiedWaterProduction { get; set; } = new() { BaseCraftingTimeMultiplier = 0.3 };
+
+    [JsonPropertyName("fasterCultistCircle")]
+    public FasterProductionOptions FasterCultistCircle { get; set; } = new() { BaseCraftingTimeMultiplier = 0.5 };
+}
+
+/// <summary>藏身处管理技能经验修复选项。</summary>
+public sealed class HideoutSkillExpFixOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("hideoutSkillExpMultiplier")]
+    public double HideoutSkillExpMultiplier { get; set; } = 10;
+}
+
+/// <summary>单项制造加速选项。</summary>
+public sealed class FasterProductionOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("baseCraftingTimeMultiplier")]
+    public double BaseCraftingTimeMultiplier { get; set; } = 1.0;
+}
+
+/// <summary>藏身处建设加速选项。</summary>
+public sealed class FasterHideoutConstructionOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("hideoutConstructionTimeMultiplier")]
+    public double HideoutConstructionTimeMultiplier { get; set; } = 50;
+}
+
+/// <summary>燃料消耗选项。</summary>
+public sealed class FuelConsumptionOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>发电机燃料流量倍率（SURV = 4）。</summary>
+    [JsonPropertyName("fuelConsumptionMultiplier")]
+    public double FuelConsumptionMultiplier { get; set; } = 4;
+}
+
+/// <summary>比特币农场选项（默认值 = SURV 终态）。</summary>
+public sealed class FasterBitcoinFarmingOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>将比特币手册价改回 10 万（SURV 关闭）。</summary>
+    [JsonPropertyName("setBitcoinPriceTo100k")]
+    public bool SetBitcoinPriceTo100k { get; set; }
+
+    [JsonPropertyName("baseBitcoinTimeMultiplier")]
+    public double BaseBitcoinTimeMultiplier { get; set; } = 1.3;
+
+    [JsonPropertyName("gpuEfficiency")]
+    public double GpuEfficiency { get; set; } = 1.0;
+}
+
+/// <summary>ScavCase 选项（默认值 = SURV 终态）。</summary>
+public sealed class ScavCaseOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>奖励池过滤（父类黑名单 + 物品黑名单）。</summary>
+    [JsonPropertyName("betterRewards")]
+    public bool BetterRewards { get; set; } = true;
+
+    [JsonPropertyName("fasterScavcase")]
+    public FasterScavcaseOptions FasterScavcase { get; set; } = new();
+
+    /// <summary>奖励池价值区间 + ScavCase 配方重做。</summary>
+    [JsonPropertyName("rebalance")]
+    public bool Rebalance { get; set; } = true;
+}
+
+/// <summary>ScavCase 启动速度选项。</summary>
+public sealed class FasterScavcaseOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("speedMultiplier")]
+    public double SpeedMultiplier { get; set; } = 0.5;
 }
 
 /// <summary>安全容器选项（默认值 = SURV 终态）。</summary>

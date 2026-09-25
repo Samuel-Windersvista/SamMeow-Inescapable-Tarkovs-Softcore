@@ -51,7 +51,7 @@ public class SoftcoreModuleTests
         var tables = new ModTables(templates, hideout, null!, traders, null!);
         context = new ModContext(new SoftcoreConfig(), tables);
 
-        return new SoftcoreModule(new TestSptLogger<SoftcoreModule>(), hideoutConfig);
+        return new SoftcoreModule(new TestSptLogger<SoftcoreModule>(), hideoutConfig, SoftcoreTestData.NewScavCaseConfig());
     }
 
     private static TemplateTable BuildTemplates()

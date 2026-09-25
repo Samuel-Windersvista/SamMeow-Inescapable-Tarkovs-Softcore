@@ -14,7 +14,8 @@ namespace InescapableTarkovsSoftcore.Features.Softcore;
 [Injectable(InjectionType.Singleton)]
 public sealed class SoftcoreModule(
     ISptLogger<SoftcoreModule> logger,
-    HideoutConfig hideoutConfig) : FeatureModule<SoftcoreModuleConfig>
+    HideoutConfig hideoutConfig,
+    ScavCaseConfig scavCaseConfig) : FeatureModule<SoftcoreModuleConfig>
 {
     public override string Id => "softcore";
 
@@ -25,7 +26,13 @@ public sealed class SoftcoreModule(
         new SecureContainersChanger(),
         new CollectorQuestChanger(),
         new StashChanger(),
-        new HideoutContainersChanger()
+        new HideoutContainersChanger(),
+        new FasterCraftingTimeChanger(),
+        new FasterHideoutConstructionChanger(),
+        new FuelConsumptionChanger(),
+        new FasterBitcoinFarmingChanger(),
+        new ScavCaseChanger(),
+        new GymTrainingChanger()
     ];
 
     protected override SoftcoreModuleConfig Section(SoftcoreConfig root) => root.Softcore;
@@ -38,7 +45,9 @@ public sealed class SoftcoreModule(
             Templates = context.Tables.TemplateTable,
             Hideout = context.Tables.HideoutTable,
             Traders = context.Tables.TradersTable,
-            HideoutConfig = hideoutConfig
+            HideoutConfig = hideoutConfig,
+            Global = context.Tables.GlobalTable,
+            ScavCase = scavCaseConfig
         };
 
         var log = new SoftcoreChangeLog();

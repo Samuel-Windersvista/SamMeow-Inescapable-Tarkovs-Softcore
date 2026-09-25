@@ -7,6 +7,7 @@ using SPTarkov.Server.Core.Models.Eft.Hideout;
 using SPTarkov.Server.Core.Models.Enums.Hideout;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Tables;
+using SPTarkov.Server.Core.Models.Spt.Tables.Globals;
 using SPTarkov.Server.Core.Utils.Json;
 using Xunit;
 
@@ -53,13 +54,13 @@ internal static class SoftcoreTestData
         LocationServices = null!
     };
 
-    public static HideoutTable NewHideout() => new()
+    public static HideoutTable NewHideout(HideoutSettingsBase? settings = null) => new()
     {
         Areas = [],
         Production = new HideoutProductionData { Recipes = [], ScavRecipes = null!, CultistRecipes = null! },
         CustomAreas = null!,
         Customisation = null!,
-        Settings = null!,
+        Settings = settings!,
         Qte = null!
     };
 
@@ -220,16 +221,159 @@ internal static class SoftcoreTestData
         HideoutTable hideout,
         TradersTable traders,
         HideoutConfig hideoutConfig,
-        SoftcoreModuleConfig? config = null) => new()
+        SoftcoreModuleConfig? config = null,
+        ScavCaseConfig? scavCase = null,
+        GlobalTable? global = null) => new()
     {
         Config = config ?? new SoftcoreModuleConfig(),
         Templates = templates,
         Hideout = hideout,
         Traders = traders,
-        HideoutConfig = hideoutConfig
+        HideoutConfig = hideoutConfig,
+        ScavCase = scavCase,
+        Global = global
     };
 
     public static ListOrT<string> ListOf(params string[] items) => new([.. items], null);
+
+    // ---- G6-B 夹具 ----
+
+    public static HideoutSettingsBase NewHideoutSettings(double? generatorFuelFlowRate = null, double? gpuBoostRate = null) => new()
+    {
+        GeneratorFuelFlowRate = generatorFuelFlowRate,
+        GpuBoostRate = gpuBoostRate,
+        GeneratorSpeedWithoutFuel = null,
+        AirFilterUnitFlowRate = null,
+        CultistAmuletBonusPercent = null
+    };
+
+    public static HideoutProduction NewRecipe(string id, string endProduct, double productionTime) => new()
+    {
+        Id = id,
+        AreaType = HideoutAreas.Workbench,
+        Requirements = [],
+        ProductionTime = productionTime,
+        EndProduct = endProduct,
+        Count = 1,
+        IsEncoded = false,
+        Locked = false,
+        NeedFuelForAllProductionTime = false,
+        Continuous = false,
+        ProductionLimitCount = 0,
+        IsCodeProduction = false
+    };
+
+    public static ScavRecipe NewScavRecipe(string id, double productionTime) => new()
+    {
+        Id = id,
+        Requirements = [],
+        ProductionTime = productionTime,
+        EndProducts = new EndProducts
+        {
+            Common = new MinMax<int> { Min = 1, Max = 1 },
+            Rare = new MinMax<int> { Min = 0, Max = 0 },
+            Superrare = new MinMax<int> { Min = 0, Max = 0 }
+        }
+    };
+
+    public static HideoutArea NewAreaWithStage(HideoutAreas type, double constructionTime) => new()
+    {
+        Type = type,
+        IsEnabled = true,
+        NeedsFuel = false,
+        Requirements = [],
+        IsTakeFromSlotLocked = false,
+        CraftGivesExperience = false,
+        DisplayLevel = false,
+        EnableAreaRequirements = false,
+        Stages = new Dictionary<string, Stage>
+        {
+            ["1"] = new Stage
+            {
+                Requirements = [],
+                AutoUpgrade = false,
+                Bonuses = [],
+                ConstructionTime = constructionTime,
+                Container = default,
+                Description = null!,
+                DisplayInterface = false,
+                Improvements = [],
+                Slots = 0
+            }
+        }
+    };
+
+    public static CraftTimeThreshold NewCraftTimeThreshold(int craftTimeSeconds) => new()
+    {
+        CraftTimeSeconds = craftTimeSeconds,
+        Type = "x",
+        Min = 0,
+        Max = 0
+    };
+
+    public static ScavCaseConfig NewScavCaseConfig() => new()
+    {
+        RewardItemValueRangeRub = new Dictionary<string, MinMax<double>>(),
+        MoneyRewards = new MoneyRewards { RubCount = null!, UsdCount = null!, EurCount = null!, GpCount = null! },
+        AmmoRewards = new AmmoRewards { AmmoRewardBlacklist = null!, AmmoRewardValueRangeRub = null! },
+        RewardItemParentBlacklist = [],
+        RewardItemBlacklist = []
+    };
+
+    /// <summary>构造健身断言所需的最小 Global 链（其余必填成员以 null! 占位）。</summary>
+    public static GlobalTable NewGlobalTable(double gymEffectivity) => new()
+    {
+        Configuration = new GlobalConfig
+        {
+            Health = new HealthGlobals
+            {
+                Effects = new HealthEffects
+                {
+                    SevereMusclePain = new MusclePainSettings
+                    {
+                        GymEffectivity = gymEffectivity,
+                        OfflineDurationMin = 0,
+                        OfflineDurationMax = 0,
+                        TraumaChance = 0
+                    },
+                    Berserk = null!, BodyTemperature = null!, BreakPart = null!, ChronicStaminaFatigue = null!,
+                    Contusion = null!, Dehydration = null!, Disorientation = null!, Exhaustion = null!, Existence = null!,
+                    Flash = null!, Fracture = null!, HeavyBleeding = null!, Intoxication = null!, LightBleeding = null!,
+                    LowEdgeHealth = null!, MedEffect = null!, MildMusclePain = null!, Pain = null!, PainKiller = null!,
+                    RadExposure = null!, Regeneration = null!, SandingScreen = null!, Stimulator = null!, Stun = null!,
+                    TearGasStrong = null!, TearGasWeak = null!, Tremor = null!, Wound = null!, ZombieInfection = null!
+                },
+                Falling = null!,
+                HealPrice = null!,
+                ProfileHealthSettings = null!
+            },
+            Exp = null!,
+            MaxMatchingTimeInSeconds = 0,
+            Mastering = null!,
+            ArenaEftTransferSettings = null!,
+            RestrictionsInRaid = null!,
+            EventType = null!,
+            RepairSettings = null!,
+            CoopSettings = null!,
+            PveSettings = null!,
+            ExtensionsSettings = null!,
+            BattlePassUniversalDocument = null!,
+            FinalConsequenceSettings = null!,
+            FinalMissionSettings = null!,
+            KolotunSettings = null!,
+            MatchMakerEstimateSettings = null!,
+            PasscodeSettings = null!,
+            SteamStatusSettings = null!,
+            Tutorial = null!,
+            WishlistSettings = null!,
+            GroupQuestSetting = null!
+        },
+        LocationInfection = null!,
+        BotPresets = null!,
+        BotWeaponScatterings = null!,
+        ItemPresets = null!,
+        InventoryTarcoinMigrationProdAllowedAids = null!
+    };
 
     /// <summary>断言模板首个网格的 (cellsV, cellsH)。</summary>
     public static void AssertSize(TemplateTable templates, string template, int cellsV, int cellsH)
