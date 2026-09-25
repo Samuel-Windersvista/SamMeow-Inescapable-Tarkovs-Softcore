@@ -46,7 +46,7 @@ SPT 引用程序集目录由 MSBuild 属性 `SptRuntimeDir` 控制（默认值�
 
 ```powershell
 dotnet build -c Release -p:SptRuntimeDir="D:\Other\SPT_Runtime"
-pwsh -File scripts/build.ps1 -SptRuntimeDir "D:\Other\SPT_Runtime"
+powershell -File scripts/build.ps1 -SptRuntimeDir "D:\Other\SPT_Runtime"
 ```
 
 ### 构建与测试
@@ -54,7 +54,7 @@ pwsh -File scripts/build.ps1 -SptRuntimeDir "D:\Other\SPT_Runtime"
 ```powershell
 dotnet build -c Release          # Release 构建
 dotnet test                      # 运行单测
-pwsh -File scripts/build.ps1     # 组装 overlay 产物
+powershell -File scripts/build.ps1     # 组装 overlay 产物
 ```
 
 ### 产物布局
