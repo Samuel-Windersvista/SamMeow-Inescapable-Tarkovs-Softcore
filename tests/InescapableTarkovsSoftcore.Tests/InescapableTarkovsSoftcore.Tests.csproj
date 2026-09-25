@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>InescapableTarkovsSoftcore.Tests</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\InescapableTarkovsSoftcore\InescapableTarkovsSoftcore.csproj" />
+  </ItemGroup>
+
+  <!--
+    The test host must load the SPT assemblies to reflect over the mod types,
+    so they are copied locally here (unlike the mod build, which keeps them
+    Private=false). Microsoft.AspNetCore.App supplies the Microsoft.Extensions.*
+    assemblies that SPTarkov.Server.Core depends on.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Reference Update="SemanticVersioning"><Private>true</Private></Reference>
+    <Reference Update="SPTarkov.Common"><Private>true</Private></Reference>
+    <Reference Update="SPTarkov.DI"><Private>true</Private></Reference>
+    <Reference Update="SPTarkov.Server.Core"><Private>true</Private></Reference>
+  </ItemGroup>
+
+</Project>

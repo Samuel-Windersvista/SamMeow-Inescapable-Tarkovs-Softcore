@@ -1,0 +1,61 @@
+<Project>
+
+  <!--
+    Shared build configuration for all projects in this repository.
+
+    SptRuntimeDir points at the SPT 5 runtime directory that holds the
+    server reference assemblies. Override it from the command line when the
+    SPT installation lives elsewhere, e.g.:
+      dotnet build -c Release -p:SptRuntimeDir="D:\Other\SPT_Runtime"
+  -->
+  <PropertyGroup>
+    <SptRuntimeDir Condition="'$(SptRuntimeDir)' == ''">E:\Game\EFT_Offline\SPT_5xx\SPT_Runtime</SptRuntimeDir>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!--
+    SPT reference assemblies. Private=false by default: a mod assembly is
+    loaded by the SPT server, which already provides these, so they must not
+    be copied into the overlay output. The test project overrides Private to
+    true for the subset it needs at runtime.
+  -->
+  <ItemGroup>
+    <Reference Include="SemanticVersioning">
+      <HintPath>$(SptRuntimeDir)\SemanticVersioning.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Common">
+      <HintPath>$(SptRuntimeDir)\SPTarkov.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.DI">
+      <HintPath>$(SptRuntimeDir)\SPTarkov.DI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Reflection">
+      <HintPath>$(SptRuntimeDir)\SPTarkov.Reflection.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Server.Assets">
+      <HintPath>$(SptRuntimeDir)\SPTarkov.Server.Assets.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Server.Core">
+      <HintPath>$(SptRuntimeDir)\SPTarkov.Server.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SPTarkov.Server.Web">
+      <HintPath>$(SptRuntimeDir)\SPTarkov.Server.Web.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="ZLinq">
+      <HintPath>$(SptRuntimeDir)\ZLinq.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="ZLogger">
+      <HintPath>$(SptRuntimeDir)\ZLogger.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>
