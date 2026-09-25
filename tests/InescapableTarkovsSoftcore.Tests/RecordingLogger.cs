@@ -5,7 +5,8 @@ using SPTarkov.Common.Models.Logging;
 namespace InescapableTarkovsSoftcore.Tests;
 
 /// <summary>
-/// 通用日志桩：捕获 Info / Warning / Error 文本，供模块与编排器测试断言旁路日志。
+/// 泛型日志桩：记录 Info/Warning/Error 文本，供各功能模块与编排器测试断言旁路日志。
+/// 生产代码经 SPT DI 注入 <c>ISptLogger&lt;TModule&gt;</c>；测试直接构造本桩。
 /// </summary>
 internal sealed class RecordingLogger<T> : ISptLogger<T>
 {

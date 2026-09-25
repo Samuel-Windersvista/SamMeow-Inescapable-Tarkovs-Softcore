@@ -14,4 +14,14 @@
     <EmbeddedResource Include="..\..\config\default-config.json" LogicalName="InescapableTarkovsSoftcore.default-config.json" />
   </ItemGroup>
 
+  <!-- G2 True Items Redux 查找表：源 = 旧包 IMM 覆盖层，嵌入程序集运行时读取 -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\data\trueitems\barter.json" LogicalName="InescapableTarkovsSoftcore.trueitems.barter.json" />
+    <EmbeddedResource Include="..\..\data\trueitems\clothing.json" LogicalName="InescapableTarkovsSoftcore.trueitems.clothing.json" />
+    <EmbeddedResource Include="..\..\data\trueitems\keycards.json" LogicalName="InescapableTarkovsSoftcore.trueitems.keycards.json" />
+    <EmbeddedResource Include="..\..\data\trueitems\medicals.json" LogicalName="InescapableTarkovsSoftcore.trueitems.medicals.json" />
+    <EmbeddedResource Include="..\..\data\trueitems\partsnmods.json" LogicalName="InescapableTarkovsSoftcore.trueitems.partsnmods.json" />
+    <EmbeddedResource Include="..\..\data\trueitems\provisions.json" LogicalName="InescapableTarkovsSoftcore.trueitems.provisions.json" />
+  </ItemGroup>
+
 </Project>

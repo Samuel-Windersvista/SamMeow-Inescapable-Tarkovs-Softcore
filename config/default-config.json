@@ -13,7 +13,9 @@
     "enabled": true
   },
   "trueItems": {
-    "enabled": true
+    "enabled": true,
+    // 逐物品/父类微调：id → 目标堆叠值（最后应用，覆盖内嵌查找表）
+    "overrides": {}
   },
   "noFirHideout": {
     "enabled": true
