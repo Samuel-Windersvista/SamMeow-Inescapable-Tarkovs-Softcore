@@ -96,7 +96,7 @@ public class NoFirHideoutModuleTests
         return module.Apply(new ModContext(new SoftcoreConfig(), Tables(table)));
     }
 
-    private static ModTables Tables(HideoutTable table) => new(null!, table, null!, null!, null!);
+    private static ModTables Tables(HideoutTable table) => new(null!, table, null!, null!, null!, null!);
 
     private static Stage StageWith(
         List<StageRequirement> requirements,

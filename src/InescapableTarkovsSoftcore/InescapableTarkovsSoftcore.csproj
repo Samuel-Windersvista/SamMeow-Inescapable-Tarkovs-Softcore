@@ -24,6 +24,10 @@
     <EmbeddedResource Include="..\..\data\trueitems\provisions.json" LogicalName="InescapableTarkovsSoftcore.trueitems.provisions.json" />
     <EmbeddedResource Include="..\..\data\antigravArmbands\armbands.json" LogicalName="InescapableTarkovsSoftcore.antigravArmbands.armbands.json" />
     <EmbeddedResource Include="..\..\data\backpacks\backpacks.json" LogicalName="InescapableTarkovsSoftcore.backpacks.backpacks.json" />
+    <EmbeddedResource Include="..\..\data\softcore\scavcase.json" LogicalName="InescapableTarkovsSoftcore.softcore.scavcase.json" />
+    <EmbeddedResource Include="..\..\data\softcore\fleamarket.json" LogicalName="InescapableTarkovsSoftcore.softcore.fleamarket.json" />
+    <EmbeddedResource Include="..\..\data\softcore\crafting-rebalance.json" LogicalName="InescapableTarkovsSoftcore.softcore.crafting-rebalance.json" />
+    <EmbeddedResource Include="..\..\data\softcore\crafting-recipes.json" LogicalName="InescapableTarkovsSoftcore.softcore.crafting-recipes.json" />
   </ItemGroup>
 
 </Project>

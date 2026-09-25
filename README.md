@@ -40,6 +40,10 @@ data/                                   功能查找表（EmbeddedResource 源�
   trueitems/                            G2 True Items 六张表
   antigravArmbands/armbands.json        G4 反重力臂章表（22 款）
   backpacks/backpacks.json              G5 背包扩容表（43 条）
+  softcore/scavcase.json                G6-B ScavCase 数据表（配方/区间/黑名单）
+  softcore/fleamarket.json              G6-C 跳蚤市场数据表（白/黑名单等；见 softcore/MANIFEST.md）
+  softcore/crafting-rebalance.json      G6-D 配方重平衡表（47 条 ops；源 productionAdjustments.ts）
+  softcore/crafting-recipes.json        G6-D 新增配方表（12 条；源 recipes.ts additionalCraftingRecipes）
 src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务端 mod）
   Config/                               配置模型与加载器
   Features/                             变换层接缝与编排器
@@ -47,6 +51,7 @@ src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务�
 tests/InescapableTarkovsSoftcore.Tests/ xUnit 测试工程
 assets/launcher/bg.png                  启动器背景静态件（随 overlay 部署）
 scripts/build.ps1                       构建 + overlay 组装脚本
+scripts/tools/                          数据再生成工具（gen-fleamarket.ps1 / gen-crafting.mjs / dump-spt-symbols.cs）
 build/overlay/                          构建产物（git 忽略）
 release/                                发行归档约定目录
 ```
@@ -161,7 +166,114 @@ build/overlay/
     "overrides": {}                                  // 单品覆盖：臂章 id → 重量（最后应用）
   },
   "backpacks": { "enabled": true },                 // G5
-  "softcore": { "enabled": true },                  // G6
+  "softcore": {                                     // G6（T08 起子结构对齐源 config.json5）
+    "enabled": true,
+    "secureContainersOptions": {                    // 安全容器：2×2 腰包起步 → Kappa
+      "enabled": true,
+      "progressiveContainers": { "enabled": true, "collectorQuestRedone": true },
+      "biggerContainers": true
+    },
+    "stashOptions": {                               // 仓库：LVL1 起步，50/100/150/200 行，建造现金 ÷10
+      "enabled": true,
+      "progressiveStash": true,
+      "biggerStash": true,
+      "lessCurrencyForConstruction": true,
+      "easierLoyalty": false
+    },
+    "hideoutContainers": {                          // 藏身处容器扩容 + SICC 增强（SURV 终态，cellsV×cellsH）
+      "enabled": true,                              // 药品 10×10 / Holo 10×10 / 弹匣 7×10 / 物品 6×6 /
+      "biggerHideoutContainers": true,              // 武器 6×7 / 钥匙工具 5×5 / THICC 武器 6×14 / THICC 物品 6×14
+      "siccCaseBuff": true
+    },
+    "fasterCraftingTime": {                         // 制造加速（T09；配方时间 = ceil(原时间 / 倍率)）
+      "enabled": true,
+      "baseCraftingTimeMultiplier": 3,              // 全局基础倍率
+      "hideoutSkillExpFix": { "enabled": true, "hideoutSkillExpMultiplier": 10 },
+      "fasterMoonshineProduction": { "enabled": true, "baseCraftingTimeMultiplier": 0.3 },
+      "fasterPurifiedWaterProduction": { "enabled": true, "baseCraftingTimeMultiplier": 0.3 },
+      "fasterCultistCircle": { "enabled": true, "baseCraftingTimeMultiplier": 0.5 }
+    },
+    "fasterHideoutConstruction": {                  // 建设加速（阶段时间 = round(原时间 / 倍率)）
+      "enabled": true,
+      "hideoutConstructionTimeMultiplier": 50
+    },
+    "fuelConsumption": { "enabled": true, "fuelConsumptionMultiplier": 4 },   // 燃料流量倍率
+    "fasterBitcoinFarming": {                       // 比特币农场
+      "enabled": true,
+      "setBitcoinPriceTo100k": false,
+      "baseBitcoinTimeMultiplier": 1.3,
+      "gpuEfficiency": 1.0
+    },
+    "scavCaseOptions": {                            // ScavCase（奖励池过滤 + 区间/配方重做 + 速度）
+      "enabled": true,
+      "betterRewards": true,
+      "fasterScavcase": { "enabled": true, "speedMultiplier": 0.5 },
+      "rebalance": true
+    },
+    "allowGymTrainingWithMusclePain": true,          // 严重肌肉疼痛下健身效率 75%
+    "economyOptions": {                             // G6-C 经济（SURV 终态）
+      "enabled": true,
+      "disableFleaMarketCompletely": false,
+      "priceRebalance": { "enabled": false, "itemFixes": true },
+      "pacifistFleaMarket": {                       // 白名单/任务钥匙/标记钥匙 价格倍率 2/3/5
+        "enabled": true,
+        "whitelist": { "enabled": true, "priceMultiplier": 2 },
+        "questKeys": { "enabled": true, "priceMultiplier": 3 },
+        "markedKeys": { "enabled": true, "priceMultiplier": 5 }
+      },
+      "barterEconomy": {                            // 现金 5% / 价差 30 / 报价 5–13 / 非堆叠 1–4 / 最多 4 换 1
+        "enabled": true,
+        "cashOffersPercentage": 5,
+        "barterPriceVariance": 30,
+        "offerItemCount": { "min": 5, "max": 13 },
+        "nonStackableCount": { "min": 1, "max": 4 },
+        "itemCountMax": 4
+      },
+      "otherFleaMarketChanges": {                   // 1 级开放 / 仅全新品 / 价格 ×1.5
+        "enabled": true,
+        "sellingOnFlea": false,
+        "fleaMarketOpenAtLevel": 1,
+        "fleaPricesIncreased": 1.5,
+        "fleaPristineItems": true,
+        "onlyFoundInRaidItemsAllowedForBarters": false
+      }
+    },
+    "traderChanges": {                              // G6-C 商人
+      "enabled": true,
+      "betterSalesToTraders": true,                 // 收价上调（忠诚 +5%/级）
+      "alternativeCategories": true,                // Therapist 收窄 / Ragman 贵重 / Skier 信息
+      "pacifistFence": { "enabled": true, "numberOfFenceOffers": 15 },
+      "reasonablyPricedCases": true,
+      "skierUsesEuros": true,
+      "biggerLimits": { "enabled": true, "multiplier": 2.0 }
+    },
+    "insuranceChanges": {                           // G6-C 保险
+      "enabled": true,
+      "praporInsuranceChanges": { "enabled": true, "returnChance": 70, "returnTime": { "min": 240, "max": 360 }, "insuranceCostPercentage": 80 },
+      "therapistInsuranceChanges": { "enabled": true, "returnChance": 60, "returnTime": { "min": 120, "max": 240 }, "insuranceCostPercentage": 50 }
+    },
+    "craftingChanges": {                            // G6-D 制造（数据内嵌 crafting-rebalance.json / crafting-recipes.json）
+      "enabled": true,
+      "craftingRebalance": true,                    // 30+ 条配方重平衡（按 endProduct 定位，仅命中首条）
+      "additionalCraftingRecipes": true             // 12 条新增配方（3-b-TG / 肾上腺素 / L1 / AHF1-M / CALOK-B 等）
+    },
+    "otherTweaks": {                                // G6-D 杂项（SURV 终态）
+      "enabled": true,
+      "skillExpBuffs": false,                       // 技能经验增益（关闭）
+      "signalPistolInSpecialSlots": true,           // 信号手枪可放入特殊槽
+      "unexaminedItemsAreBack": false,              // 撤销「默认已检视」（关闭）
+      "fasterExamineTime": true,                    // 检视时间固定 0.2s
+      "removeBackpackRestrictions": true,           // 移除背包/容器过滤限制
+      "removeDiscardLimit": true,                   // 移除丢弃限制
+      "reshalaAlwaysHasGoldenTT": true,             // Reshala 必带金色 TT
+      "biggerAmmoStacks": { "enabled": true, "stackMultiplier": 5 },  // 弹药堆叠 ×5（无重量/Boss 补偿）
+      "vestsBlockArmor": false,                     // false = 弹挂与护甲不冲突（与 G1 修复同向）
+      "questChanges": true,                         // 任务变更（仅 Crisis + Drip-Out）
+      "removeRaidItemLimits": true,                 // 移除战局内物品限制
+      "biggerCurrencyStacks": false,                // 货币堆叠（关闭）
+      "smallContainersInSpecialSlots": false        // 小型容器特殊槽（关闭）
+    }
+  },
   "raidDuration": {                                 // G7
     "enabled": true,
     "multiplier": 1.0                               // 全局战局时长倍率；1.0 = 原版，2.0 = 翻倍
@@ -169,7 +281,19 @@ build/overlay/
 }
 ```
 
-各组开关独立；`raidDuration.multiplier` 调整战局时长倍率（例如 `2.0` 使地图时限翻倍）。
+各组开关独立；`raidDuration.multiplier` 调整战局时长倍率（例如 `2.0` 使地图时限翻倍）。`softcore` 段随 G6 串行链（T08–T11）逐步扩展，子开关默认值 = 旧包 SURV 终态。
+
+> 倍率方向语义（源真实行为，非笔误）：`faster*` 时间参数实现为 `时间 / 倍率`，故 `0.3` → ×3.33、`0.5` → ×2（时间变长）。涉及 `fasterMoonshineProduction` / `fasterPurifiedWaterProduction` / `fasterCultistCircle` / `scavCaseOptions.fasterScavcase`。这是旧包终态行为，T09 审查确认保留。
+
+### G6-D 制造与杂项语义
+
+- **顺序约束（制造）**：`CraftingChangesChanger` 注册在 `FasterCraftingTimeChanger` 之后，故新增配方的 `productionTime` 保持源值，不被全局 ÷3（与源 `Softcore.ts` 应用顺序等效，测试已钉住）。
+- **配方重平衡**：数据 = 内嵌 `crafting-rebalance.json`（47 条，源 `productionAdjustments.ts` 的闭包录制为声明式 ops：`count` / `setAllCounts` / `setCount` / `replaceTemplate` / `setAreaLevel` / `replaceRequirements` / `pushRequirement`）。按 `endProduct` 定位，排除 `ChristmasIllumination`（源 3.11 的 `CHRISTMAS_TREE`）；`find` 语义 = 仅命中首条。
+- **唯一性兜底（B3）**：仅校验本 mod 自带的新增配方资源（重复 `endProduct` 告警并去重）。SPT5 原版同一 `endProduct` 存在合法的多配方（例如同一物品在厨房/营养站各一条、同站不同耗时两条），故不对原版表做全局去重。
+- **`vestsBlockArmor=false`**：源 TS 的守卫写法为 `if (config.vestsBlockArmor)`（语义反转缺陷）；本实现按 SURV 终值语义落地——`false` 表示含 `RigLayoutName` 的弹挂甲 `BlocksArmorVest=false`（弹挂与护甲不冲突，与 G1 修复同向）。置 `true` 则不改动。
+- **弹药堆叠**：父类为 Ammo 且 `StackMaxSize≠0` → `×stackMultiplier`；SURV 覆盖已移除 BASE 的 Boss 弹药重量补偿（无 botConfig 依赖）。
+- **任务变更（按 id 匹配）**：SPT 5.0 生产 DB 的 `quests.name` 是本地化键（`<id> name`），按名匹配会静默失效，故按 id：Drip-Out 4 个任务（`6613f300…` / `6613f307…` / `66151401…` / `6615141b…`）设 `HandoverItem=10` / `CounterCreator=20`（源终值；5.0 原版 50/100）；收藏家任务按 id `5c51aac186f77432ea65c552` 重做。Crisis 在 5.0 仅 1 条 `AvailableForStart`（Level 条件已被 BSG 移除），源 `+30` 不可复现 → 告警跳过。SURV 覆盖已移除 circulate 与 colleagues3。
+- **未迁移/关闭项**：`skillExpBuffs`、`unexaminedItemsAreBack`、`biggerCurrencyStacks`、`smallContainersInSpecialSlots` 默认关闭（SURV）
 
 ### G2 True Items 查找表
 

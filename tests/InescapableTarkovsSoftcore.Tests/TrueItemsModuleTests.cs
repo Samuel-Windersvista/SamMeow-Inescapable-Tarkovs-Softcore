@@ -252,7 +252,7 @@ public class TrueItemsModuleTests
         var logger = new RecordingLogger<TrueItemsModule>();
         var module = new TrueItemsModule(logger);
         var table = TestItemTables.Items((AaBattery, "", 15, null), (Propital, "", 1, 0));
-        var context = new ModContext(new SoftcoreConfig(), new ModTables(table, null!, null!, null!, null!));
+        var context = new ModContext(new SoftcoreConfig(), new ModTables(table, null!, null!, null!, null!, null!));
 
         var report = module.Apply(context);
 
@@ -272,7 +272,7 @@ public class TrueItemsModuleTests
         var orchestrator = new ModuleOrchestrator(
             [new TrueItemsModule(new RecordingLogger<TrueItemsModule>())],
             new RecordingLogger<ModuleOrchestrator>(),
-            new ModTables(table, null!, null!, null!, null!));
+            new ModTables(table, null!, null!, null!, null!, null!));
 
         var report = orchestrator.Run(config);
 
@@ -287,7 +287,7 @@ public class TrueItemsModuleTests
         var orchestrator = new ModuleOrchestrator(
             [new TrueItemsModule(new RecordingLogger<TrueItemsModule>())],
             new RecordingLogger<ModuleOrchestrator>(),
-            new ModTables(table, null!, null!, null!, null!));
+            new ModTables(table, null!, null!, null!, null!, null!));
 
         var report = orchestrator.Run(new SoftcoreConfig());
 

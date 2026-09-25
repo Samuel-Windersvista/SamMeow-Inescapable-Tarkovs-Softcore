@@ -35,3 +35,22 @@
 
 - `insuranceChanges.prapor.insuranceCostPercentage = 80`（BASE 25）存疑——按最终态保留，若属笔误在规格阶段修正。
 - True Items IMM 自定义 stim `_id` 占位符问题（详见 `delta-table.md` §3b）。
+
+## 4. T11 结项记录（G6-D）
+
+- **C1 已核对（0 失效）**：`fleamarket.json` 的 `bsgBlacklist` 353/353 全有效；同批 whitelist / questKeys / markedKeys / requestWhitelist（物品 id）与 actualBaseClasses / itemBaseClasses / pacifistFenceItemBaseWhitelist（父类 id）及 fleaListingsWhitelistHandBook（手册类目 id）全有效。详见 `delta-table.md` §4c。
+- **B3 兜底口径**：唯一性校验仅作用于本 mod 自带的新增配方资源；SPT5 原版存在 13 处合法重复 `endProduct`，不做全局去重。
+- 源码反转缺陷（记录并裁定）：`OtherTweaksChanger.vestsBlockArmor` 守卫写法与语义相反，按 SURV 终值语义落地（`false` ⇒ 弹挂与护甲不冲突）。
+
+## 5. T11 审查修复（G1–G6）
+
+- **G1 任务按 id 匹配**：5.0 `quests.name` 为本地化键，按名匹配静默失效 → `OtherTweaksChanger` Drip-Out 改按 4 个 id、`CollectorQuestChanger` 改按 `5c51aac186f77432ea65c552`。测试夹具改用生产形态（locale-key 名）。
+- **G2 rebalance 首条漂移**：3 条配方按旧包目标 id 钉定（`60098b17`→`61c77cc6…`、`5448fee0`→`5dc1f4d9…`、`5d6fc873`→`5dd3c5a6…`）；漂移清单见 `delta-table.md` §4c。
+- **G3 Crisis 记录纠正**：5.0 A4S 仅 1 条（Level 条件已移除），源 `+30` 不可复现 → 告警跳过为正确行为。
+- **G4 ExamineTime**：守卫 `not 0` → `> 0`（语义正确）。
+- **G5 Standards**：模块级注册序断言（经真实 `SoftcoreModule.Apply`）；ops 引擎缺值改为告警+跳过（区分「未知 op」/「字段缺失」）；`CraftingRecipeGuard` → `internal`。
+- **G6 再生成路径**：`dump-spt-symbols.cs` 前置条件（`FrameworkReference Microsoft.AspNetCore.App`，否则解析 `Microsoft.Extensions.Hosting.Abstractions` 失败）与符号表 SHA-256 记入 `data/softcore/MANIFEST.md`。
+
+## 6. 遗留债（T13 评估）
+
+- **ContainerRecipes 未外置（D12 例外）**：T08 `src/.../Changers/ContainerRecipes.cs` 以 C# 代码定义 `alpha/beta/epsilon/gamma` 四条安全容器配方（源 `assets/recipes.ts` 的 `containerRecipes`）。因源本身以代码常量定义、且 T08 已按 `Id` 幂等注册，T11 未将其并入 `data/softcore/crafting-recipes.json`。**标注为遗留债，待 T13 评估是否统一外置。**
