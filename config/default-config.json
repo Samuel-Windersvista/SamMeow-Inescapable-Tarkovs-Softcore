@@ -21,7 +21,11 @@
     "enabled": true
   },
   "antigravArmbands": {
-    "enabled": true
+    "enabled": true,
+    // 全部臂章的堆叠上限
+    "stackSize": 5,
+    // 单品覆盖：臂章 id → 重量（最后应用，覆盖内嵌查找表）
+    "overrides": {}
   },
   "backpacks": {
     "enabled": true
