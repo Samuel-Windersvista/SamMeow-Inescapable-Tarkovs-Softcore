@@ -21,8 +21,71 @@ SPT 5.0 服务端整合 mod。把 Life in Norvinsk v0.3.2 的六组功能 + 战�
 
 - `CONTEXT.md` — 术语表
 - `docs/adr/` — 架构决策记录
+- `docs/specs/` — 规格书快照（以 GitHub issue 为准）
 - 规格书与工单：to-spec / to-tickets 产出（后续提交）
+
+## 开发
+
+### 环境要求
+
+- .NET SDK 10.0.300+
+- SPT 5.0.0 服务端运行时（提供引用程序集），默认路径 `E:\Game\EFT_Offline\SPT_5xx\SPT_Runtime`
+
+### 工程布局
+
+```
+InescapableTarkovsSoftcore.sln
+src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务端 mod）
+tests/InescapableTarkovsSoftcore.Tests/ xUnit 测试工程
+scripts/build.ps1                       构建 + overlay 组装脚本
+build/overlay/                          构建产物（git 忽略）
+release/                                发行归档约定目录
+```
+
+SPT 引用程序集目录由 MSBuild 属性 `SptRuntimeDir` 控制（默认值见 `Directory.Build.props`）。若 SPT 安装在别处：
+
+```powershell
+dotnet build -c Release -p:SptRuntimeDir="D:\Other\SPT_Runtime"
+pwsh -File scripts/build.ps1 -SptRuntimeDir "D:\Other\SPT_Runtime"
+```
+
+### 构建与测试
+
+```powershell
+dotnet build -c Release          # Release 构建
+dotnet test                      # 运行单测
+pwsh -File scripts/build.ps1     # 组装 overlay 产物
+```
+
+### 产物布局
+
+`scripts/build.ps1` 幂等产出（每次运行重建 `build/overlay/`）：
+
+```
+build/overlay/
+└─ SPT_Runtime/
+   └─ user/
+      └─ mods/
+         └─ com.sammeow.inescapable-softcore/
+            ├─ InescapableTarkovsSoftcore.dll
+            ├─ config.json      # 默认配置壳（general.enabled / general.debug）
+            └─ Resources/       # 数据资产占位（后续工单填充）
+```
+
+### 部署映射
+
+| overlay 根 | 游戏实例 |
+|---|---|
+| `build/overlay/` | 游戏根 `E:\Game\EFT_Offline\SPT_5xx` |
+| `build/overlay/SPT_Runtime/user/mods/com.sammeow.inescapable-softcore/` | `SPT_Runtime\user\mods\com.sammeow.inescapable-softcore\` |
+
+部署经 MO2 overlay 目录 `[5]核心-Inescapable-Tarkovs-Softcore-<版本>` 向目标实例投影；不直接写入游戏目录。
+
+### 发行归档
+
+`release/` 存放版本化发行包（`[5]核心-Inescapable-Tarkovs-Softcore-<版本>.zip`）。除 `.gitkeep` 与 `release/README.md` 外，目录内容被 git 忽略；每个发行以 git tag + 构建产物为准。
 
 ## 状态
 
-设计访谈（grill-with-docs）已收敛；规格书待产出。版本自 `0.1.0` 起步。
+设计访谈（grill-with-docs）已收敛；规格书与工单进行中。版本自 `0.1.0` 起步。
+
