@@ -10,7 +10,7 @@ namespace InescapableTarkovsSoftcore.Features.Softcore.Changers;
 /// 存在合法的多配方（例如同一物品在厨房/营养站各有一条、同站不同耗时两条）。
 /// </para>
 /// </summary>
-public static class CraftingRecipeGuard
+internal static class CraftingRecipeGuard
 {
     public static List<HideoutProduction> DedupeByEndProduct(
         IEnumerable<HideoutProduction> recipes,

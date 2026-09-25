@@ -10,7 +10,7 @@ namespace InescapableTarkovsSoftcore.Features.Softcore;
 /// <summary>
 /// G6 Softcore 功能组模块（id = softcore，D5 顺序 100）。子变换器按固定次序执行，
 /// 单个子变换器异常被隔离并降级为告警，不影响其余子变换器。
-/// 后续批次（T09–T11）只需新增子变换器并追加到 <see cref="Changers"/>。
+/// T08–T11 已完成（G6-A/B/C/D）；新增功能只需追加子变换器到 <see cref="Changers"/>。
 /// </summary>
 [Injectable(InjectionType.Singleton)]
 public sealed class SoftcoreModule(

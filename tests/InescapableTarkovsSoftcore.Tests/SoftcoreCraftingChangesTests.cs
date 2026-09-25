@@ -143,17 +143,84 @@ public class SoftcoreCraftingChangesTests
     }
 
     [Fact]
-    public void CraftingRecipeGuard_DropsDuplicateEndProducts_AndWarns()
+    public void DuplicateAdditionalRecipes_AreDeduped_WithWarning()
     {
-        var first = SoftcoreTestData.NewRecipe("0000000000000000000000c1", Paracord, 1000);
-        var duplicate = SoftcoreTestData.NewRecipe("0000000000000000000000c2", Paracord, 2000);
-        var log = new SoftcoreChangeLog { Changer = "craftingChanges" };
+        var context = NewContext(out var hideout);
+        context.Config.CraftingChanges.CraftingRebalance = false;
+        var recipesTable = new CraftingRecipesTable
+        {
+            AdditionalRecipes =
+            [
+                SoftcoreTestData.NewRecipe("0000000000000000000000d1", "0000000000000000000000ab", 100),
+                SoftcoreTestData.NewRecipe("0000000000000000000000d2", "0000000000000000000000ab", 200)
+            ]
+        };
+        var log = new SoftcoreChangeLog { Changer = new CraftingChangesChanger().Name };
 
-        var unique = CraftingRecipeGuard.DedupeByEndProduct([first, duplicate], log);
+        new CraftingChangesChanger().Apply(context, log, new CraftingRebalanceTable(), recipesTable);
 
-        Assert.Single(unique);
-        Assert.Equal("0000000000000000000000c1", (string)unique[0].Id);
+        Assert.Single(hideout.Production!.Recipes!);
         Assert.Contains(log.Warnings, w => w.Contains("重复", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PinnedRecipeId_AvoidsFirstMatchDrift_BottleWaterLandsOn6650s()
+    {
+        var context = NewContext(out var hideout);
+        // 5.0 生产 DB：5448fee0（瓶装水 0.6L）有两条配方，首条为 1200s（漂移目标），源命中 6650s。
+        var drifted = SoftcoreTestData.NewRecipe("67f4ebb7d0fb51b8c705e80e", "5448fee04bdc2dbc018b4567", 1200);
+        var pinned = SoftcoreTestData.NewRecipe("5dc1f4d9e078d303d91b44c7", "5448fee04bdc2dbc018b4567", 6650);
+        hideout.Production!.Recipes!.AddRange([drifted, pinned]);
+
+        new CraftingChangesChanger().Apply(
+            context, new SoftcoreChangeLog(), CraftingResourceLoader.LoadRebalance(), new CraftingRecipesTable());
+
+        Assert.Equal(1, drifted.Count);
+        Assert.Equal(16, pinned.Count);
+    }
+
+    [Fact]
+    public void MissingValueOp_WarnsAndSkips_WithoutWritingZero()
+    {
+        var context = NewContext(out var hideout);
+        var recipe = SoftcoreTestData.NewRecipe("0000000000000000000000f1", "0000000000000000000000ef", 1000);
+        recipe.Count = 5;
+        hideout.Production!.Recipes!.Add(recipe);
+        var rebalance = new CraftingRebalanceTable
+        {
+            RecipeAdjustments =
+            [
+                new RecipeAdjustment { Id = "0000000000000000000000ef", Ops = [new AdjustmentOp { Op = "count" }] }
+            ]
+        };
+        var log = new SoftcoreChangeLog { Changer = new CraftingChangesChanger().Name };
+
+        new CraftingChangesChanger().Apply(context, log, rebalance, new CraftingRecipesTable());
+
+        Assert.Equal(5, recipe.Count);
+        Assert.Contains(
+            log.Warnings,
+            w => w.Contains("count", StringComparison.Ordinal) && w.Contains("缺失必要字段", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void UnknownOp_WarnsWithDistinctMessage()
+    {
+        var context = NewContext(out var hideout);
+        var recipe = SoftcoreTestData.NewRecipe("0000000000000000000000f2", "0000000000000000000000ee", 1000);
+        hideout.Production!.Recipes!.Add(recipe);
+        var rebalance = new CraftingRebalanceTable
+        {
+            RecipeAdjustments =
+            [
+                new RecipeAdjustment { Id = "0000000000000000000000ee", Ops = [new AdjustmentOp { Op = "bogus" }] }
+            ]
+        };
+        var log = new SoftcoreChangeLog { Changer = new CraftingChangesChanger().Name };
+
+        new CraftingChangesChanger().Apply(context, log, rebalance, new CraftingRecipesTable());
+
+        Assert.Contains(log.Warnings, w => w.Contains("未知操作", StringComparison.Ordinal));
     }
 
     private static SoftcoreContext NewContext(out HideoutTable hideout)

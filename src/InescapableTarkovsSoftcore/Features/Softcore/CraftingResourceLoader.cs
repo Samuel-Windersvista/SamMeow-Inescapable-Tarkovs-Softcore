@@ -36,6 +36,13 @@ public sealed class RecipeAdjustment
     [JsonPropertyName("id")]
     public string Id { get; init; } = string.Empty;
 
+    /// <summary>
+    /// 钉定的目标配方 id（可空）。非空时按 id 定位，消除「同 endProduct 多配方」的首条漂移；
+    /// 见 data/softcore/MANIFEST.md 与 delta-table §4c。
+    /// </summary>
+    [JsonPropertyName("recipeId")]
+    public string? RecipeId { get; init; }
+
     [JsonPropertyName("ops")]
     public List<AdjustmentOp> Ops { get; init; } = [];
 }

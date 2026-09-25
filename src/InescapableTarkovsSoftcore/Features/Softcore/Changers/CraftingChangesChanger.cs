@@ -6,11 +6,15 @@ using Requirement = SPTarkov.Server.Core.Models.Eft.Hideout.Requirement;
 namespace InescapableTarkovsSoftcore.Features.Softcore.Changers;
 
 /// <summary>
-/// G6-D 制造更改：30+ 条配方重平衡 + 12 条新增配方。数据来自内嵌
+/// G6-D 制造更改：47 条配方重平衡 + 12 条新增配方。数据来自内嵌
 /// <see cref="CraftingResourceLoader"/>（源 TS assets/productionAdjustments.ts + recipes.ts）。
 /// <para>
 /// 顺序约束（与源 <c>Softcore.ts</c> 等效）：本变换器注册在 <see cref="FasterCraftingTimeChanger"/> 之后，
 /// 故新增配方不在全局 ÷3 范围内，其 productionTime 保持源值。
+/// </para>
+/// <para>
+/// 配方定位：优先按 <see cref="RecipeAdjustment.RecipeId"/> 钉定的配方 id（消除 SPT5 同 endProduct
+/// 多配方时的首条漂移），否则按 endProduct；两者均排除 <c>ChristmasIllumination</c>。
 /// </para>
 /// <para>
 /// B3 兜底：加载新增配方时检测重复 endProduct，告警并去重（仅约束本 mod 自带的配方资源；
@@ -21,7 +25,24 @@ public sealed class CraftingChangesChanger : ISoftcoreChanger
 {
     public string Name => "craftingChanges";
 
-    public void Apply(SoftcoreContext context, SoftcoreChangeLog log)
+    public void Apply(SoftcoreContext context, SoftcoreChangeLog log) =>
+        Apply(context, log, CraftingResourceLoader.LoadRebalance, CraftingResourceLoader.LoadRecipes);
+
+    /// <summary>
+    /// 测试接缝：注入外置数据表（生产路径经 <see cref="CraftingResourceLoader"/> 读内嵌资源）。
+    /// </summary>
+    public void Apply(
+        SoftcoreContext context,
+        SoftcoreChangeLog log,
+        CraftingRebalanceTable rebalance,
+        CraftingRecipesTable additionalRecipes) =>
+        Apply(context, log, () => rebalance, () => additionalRecipes);
+
+    private static void Apply(
+        SoftcoreContext context,
+        SoftcoreChangeLog log,
+        Func<CraftingRebalanceTable> rebalance,
+        Func<CraftingRecipesTable> additionalRecipes)
     {
         var options = context.Config.CraftingChanges;
         if (!options.Enabled)
@@ -37,37 +58,40 @@ public sealed class CraftingChangesChanger : ISoftcoreChanger
 
         if (options.CraftingRebalance)
         {
-            ApplyRebalance(recipes, log);
+            ApplyRebalance(recipes, rebalance(), log);
         }
 
         if (options.AdditionalCraftingRecipes)
         {
-            ApplyAdditionalRecipes(recipes, log);
+            ApplyAdditionalRecipes(recipes, additionalRecipes(), log);
         }
     }
 
-    private static void ApplyRebalance(List<HideoutProduction> recipes, SoftcoreChangeLog log)
+    private static void ApplyRebalance(
+        List<HideoutProduction> recipes,
+        CraftingRebalanceTable rebalance,
+        SoftcoreChangeLog log)
     {
-        var data = CraftingResourceLoader.LoadRebalance();
-
-        foreach (var adjustment in data.RecipeAdjustments)
+        foreach (var adjustment in rebalance.RecipeAdjustments)
         {
-            // 源 TS：find(production => endProduct === id && areaType !== CHRISTMAS_TREE)。
-            // SPT5 无 CHRISTMAS_TREE，对应枚举为 ChristmasIllumination（4.x 起改名）。
-            var craft = recipes.FirstOrDefault(recipe =>
-                recipe.EndProduct == adjustment.Id && recipe.AreaType != HideoutAreas.ChristmasIllumination);
-
+            var craft = LocateRecipe(recipes, adjustment);
             if (craft is null)
             {
-                log.Warn($"未找到配方 {adjustment.Id}，跳过");
+                var pinned = adjustment.RecipeId is { } id ? $"（钉定 id {id}）" : string.Empty;
+                log.Warn($"未找到配方 {adjustment.Id}{pinned}，跳过");
                 continue;
             }
 
             foreach (var op in adjustment.Ops)
             {
-                if (!ApplyOp(craft, op, log))
+                switch (ApplyOp(craft, op))
                 {
-                    log.Warn($"配方 {adjustment.Id} 未知操作：{op.Op}");
+                    case CraftingOpResult.UnknownOp:
+                        log.Warn($"配方 {adjustment.Id} 未知操作：{op.Op}");
+                        break;
+                    case CraftingOpResult.MissingField:
+                        log.Warn($"配方 {adjustment.Id} 操作 {op.Op} 缺失必要字段，跳过");
+                        break;
                 }
             }
 
@@ -75,41 +99,64 @@ public sealed class CraftingChangesChanger : ISoftcoreChanger
         }
     }
 
-    private static bool ApplyOp(HideoutProduction craft, AdjustmentOp op, SoftcoreChangeLog log)
+    /// <summary>定位目标配方：优先钉定 id，否则按 endProduct；均排除圣诞照明（源 CHRISTMAS_TREE）。</summary>
+    private static HideoutProduction? LocateRecipe(List<HideoutProduction> recipes, RecipeAdjustment adjustment)
+    {
+        if (adjustment.RecipeId is { } pinned)
+        {
+            return recipes.FirstOrDefault(recipe =>
+                recipe.Id == pinned && recipe.AreaType != HideoutAreas.ChristmasIllumination);
+        }
+
+        return recipes.FirstOrDefault(recipe =>
+            recipe.EndProduct == adjustment.Id && recipe.AreaType != HideoutAreas.ChristmasIllumination);
+    }
+
+    private static CraftingOpResult ApplyOp(HideoutProduction craft, AdjustmentOp op)
     {
         switch (op.Op)
         {
             case "count":
-                craft.Count = Scale(op.Value);
-                return true;
-
-            case "setAllCounts":
-                foreach (var requirement in craft.Requirements.Where(r => r.Count is { } count && count != 0))
+                if (op.Value is not { } countValue)
                 {
-                    requirement.Count = Scale(op.Value);
+                    return CraftingOpResult.MissingField;
                 }
 
-                return true;
+                craft.Count = Scale(countValue);
+                return CraftingOpResult.Applied;
+
+            case "setAllCounts":
+                if (op.Value is not { } allValue)
+                {
+                    return CraftingOpResult.MissingField;
+                }
+
+                foreach (var requirement in craft.Requirements.Where(r => r.Count is { } count && count != 0))
+                {
+                    requirement.Count = Scale(allValue);
+                }
+
+                return CraftingOpResult.Applied;
 
             case "setCount":
-                if (op.TemplateId is not { } countTarget)
+                if (op.TemplateId is not { } countTarget || op.Value is not { } setValue)
                 {
-                    return false;
+                    return CraftingOpResult.MissingField;
                 }
 
                 // 源 TS 用 find → 仅首条命中。
                 var countRequirement = craft.Requirements.FirstOrDefault(r => r.TemplateId is { } t && t == countTarget);
                 if (countRequirement is not null)
                 {
-                    countRequirement.Count = Scale(op.Value);
+                    countRequirement.Count = Scale(setValue);
                 }
 
-                return true;
+                return CraftingOpResult.Applied;
 
             case "replaceTemplate":
                 if (op.From is not { } from || op.To is not { } to)
                 {
-                    return false;
+                    return CraftingOpResult.MissingField;
                 }
 
                 var replaceRequirement = craft.Requirements.FirstOrDefault(r => r.TemplateId is { } t && t == from);
@@ -118,40 +165,52 @@ public sealed class CraftingChangesChanger : ISoftcoreChanger
                     replaceRequirement.TemplateId = to;
                 }
 
-                return true;
+                return CraftingOpResult.Applied;
 
             case "setAreaLevel":
+                if (op.Value is not { } levelValue)
+                {
+                    return CraftingOpResult.MissingField;
+                }
+
                 var areaRequirement = craft.Requirements.FirstOrDefault(r => r.Type == "Area");
                 if (areaRequirement is not null)
                 {
-                    areaRequirement.RequiredLevel = Scale(op.Value);
+                    areaRequirement.RequiredLevel = Scale(levelValue);
                 }
 
-                return true;
+                return CraftingOpResult.Applied;
 
             case "replaceRequirements":
-                craft.Requirements = op.Requirements?.Select(Clone).ToList() ?? [];
-                return true;
-
-            case "pushRequirement":
-                if (op.Requirement is not null)
+                if (op.Requirements is not { } replacement)
                 {
-                    craft.Requirements.Add(Clone(op.Requirement));
+                    return CraftingOpResult.MissingField;
                 }
 
-                return true;
+                craft.Requirements = replacement.Select(Clone).ToList();
+                return CraftingOpResult.Applied;
+
+            case "pushRequirement":
+                if (op.Requirement is not { } pushed)
+                {
+                    return CraftingOpResult.MissingField;
+                }
+
+                craft.Requirements.Add(Clone(pushed));
+                return CraftingOpResult.Applied;
 
             default:
-                return false;
+                return CraftingOpResult.UnknownOp;
         }
     }
 
-    private static void ApplyAdditionalRecipes(List<HideoutProduction> recipes, SoftcoreChangeLog log)
+    private static void ApplyAdditionalRecipes(
+        List<HideoutProduction> recipes,
+        CraftingRecipesTable additionalRecipes,
+        SoftcoreChangeLog log)
     {
-        var data = CraftingResourceLoader.LoadRecipes();
-
         // B3 兜底：先在资源内部按 endProduct 去重（保留首条），再逐条加入。
-        var unique = CraftingRecipeGuard.DedupeByEndProduct(data.AdditionalRecipes, log);
+        var unique = CraftingRecipeGuard.DedupeByEndProduct(additionalRecipes.AdditionalRecipes, log);
 
         foreach (var recipe in unique)
         {
@@ -166,7 +225,7 @@ public sealed class CraftingChangesChanger : ISoftcoreChanger
         }
     }
 
-    private static int Scale(double? value) => (int)SoftcoreTime.JsRound(value ?? 0);
+    private static int Scale(double value) => (int)SoftcoreTime.JsRound(value);
 
     private static Requirement Clone(Requirement requirement) => new()
     {
@@ -198,4 +257,12 @@ public sealed class CraftingChangesChanger : ISoftcoreChanger
         ProductionLimitCount = recipe.ProductionLimitCount,
         IsCodeProduction = recipe.IsCodeProduction
     };
+
+    /// <summary>op 应用结果：用于区分「未知 op」与「字段缺失」的告警文案。</summary>
+    private enum CraftingOpResult
+    {
+        Applied,
+        UnknownOp,
+        MissingField
+    }
 }

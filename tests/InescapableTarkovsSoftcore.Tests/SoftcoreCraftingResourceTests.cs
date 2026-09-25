@@ -37,6 +37,25 @@ public class SoftcoreCraftingResourceTests
     }
 
     [Fact]
+    public void Resource_PinnedRecipeIds_MatchDeltaTable()
+    {
+        var rebalance = CraftingResourceLoader.LoadRebalance();
+
+        Assert.Equal(
+            "61c77cc6fcc1673f08540e9b",
+            rebalance.RecipeAdjustments.Single(a => a.Id == "60098b1705871270cd5352a1").RecipeId);
+        Assert.Equal(
+            "5dc1f4d9e078d303d91b44c7",
+            rebalance.RecipeAdjustments.Single(a => a.Id == "5448fee04bdc2dbc018b4567").RecipeId);
+        Assert.Equal(
+            "5dd3c5a67da3785e63275437",
+            rebalance.RecipeAdjustments.Single(a => a.Id == "5d6fc87386f77449db3db94e").RecipeId);
+        // 590a3b04：5.0 首条与源一致，无需钉定。
+        Assert.Null(rebalance.RecipeAdjustments.Single(a => a.Id == "590a3b0486f7743954552bdb").RecipeId);
+        Assert.Equal(3, rebalance.RecipeAdjustments.Count(a => a.RecipeId is not null));
+    }
+
+    [Fact]
     public void Resource_SpotChecksMatchSource()
     {
         var rebalance = CraftingResourceLoader.LoadRebalance();

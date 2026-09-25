@@ -19,7 +19,7 @@ public sealed class SoftcoreContext
     public required SoftcoreServices Services { get; init; }
 }
 
-/// <summary>数据库表分组。Templates/Hideout/Traders 必填；Global 仅 G6-B 健身使用（可空）。</summary>
+/// <summary>数据库表分组。Templates/Hideout/Traders 必填；Global（G6-B/C/D）与 Bots（G6-D）可空。</summary>
 public sealed class SoftcoreTables
 {
     public required TemplateTable Templates { get; init; }
@@ -28,7 +28,7 @@ public sealed class SoftcoreTables
 
     public required TradersTable Traders { get; init; }
 
-    /// <summary>全局表（G6-B 健身效果；G6-C 跳蚤全局 RagFair 配置）。</summary>
+    /// <summary>全局表（G6-B 健身效果；G6-C 跳蚤全局；G6-D 战局物品限制 / 技能经验）。</summary>
     public GlobalTable? Global { get; init; }
 
     /// <summary>机器人表（G6-D Reshala 金 TT）。</summary>

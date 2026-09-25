@@ -44,6 +44,16 @@ const symbols = JSON.parse(fs.readFileSync(symbolsPath, "utf8"));
 const ItemTpl = symbols.ItemTpl;
 const BaseClasses = symbols.BaseClasses;
 
+// 旧包目标配方 id 钉定（endProduct -> recipeId）。
+// 依据：docs/specs/delta-table.md §4c「rebalance 首条命中漂移」——SPT 5.0 生产 DB 中
+// 这些 endProduct 各有 2 条配方，其中 3 个首条与 3.11 不同，必须钉住源命中的那条。
+// 590a3b04… 首条与源一致（5ffcac4e…），无需钉定（仅记录）。
+const RECIPE_ID_PINS = {
+  "60098b1705871270cd5352a1": "61c77cc6fcc1673f08540e9b",
+  "5448fee04bdc2dbc018b4567": "5dc1f4d9e078d303d91b44c7",
+  "5d6fc87386f77449db3db94e": "5dd3c5a67da3785e63275437",
+};
+
 function deepCopy(v) {
   return JSON.parse(JSON.stringify(v));
 }
@@ -187,7 +197,13 @@ for (const adjustment of adjustments) {
   if (unknown.length) {
     throw new Error(`adjustment ${id} 出现未支持字段赋值：${JSON.stringify(unknown)}`);
   }
-  recorded.push({ id, ops });
+
+  // 旧包目标配方 id 钉定：5.0 生产 DB 中这些 endProduct 有 2 条配方，且首条与 3.11 不同，
+  // 单靠 find(endProduct) 会漂移到另一条；钉住源命中的配方 id（见 delta-table §4c）。
+  const entry = { id };
+  if (RECIPE_ID_PINS[id]) entry.recipeId = RECIPE_ID_PINS[id];
+  entry.ops = ops;
+  recorded.push(entry);
 }
 
 fs.mkdirSync(outDir, { recursive: true });

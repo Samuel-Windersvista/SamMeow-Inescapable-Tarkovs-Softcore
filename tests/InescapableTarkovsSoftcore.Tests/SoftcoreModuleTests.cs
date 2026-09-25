@@ -55,6 +55,21 @@ public class SoftcoreModuleTests
             warning => warning.StartsWith("[ITS] softcore.fasterCraftingTime:", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void Module_RegistrationOrder_KeepsNewRecipesUndivided()
+    {
+        // 经真实 SoftcoreModule.Apply 断言注册序：fasterCraftingTime（÷3）先于 craftingChanges（新增配方）。
+        var module = NewModule(SoftcoreTestData.NewHideoutConfig(), out var context);
+        var recipes = context.Tables.HideoutTable.Production!.Recipes!;
+        recipes.Add(SoftcoreTestData.NewRecipe("0000000000000000000000e1", "0000000000000000000000ee", 900));
+
+        var report = module.Apply(context);
+
+        Assert.Null(report.Error);
+        Assert.Equal(300d, recipes.Single(r => r.EndProduct == "0000000000000000000000ee").ProductionTime);
+        Assert.Equal(23d, recipes.Single(r => r.EndProduct == "5c10c8fd86f7743d7d706df3").ProductionTime);
+    }
+
     private static SoftcoreModule NewModule(HideoutConfig hideoutConfig, out ModContext context)
     {
         var templates = BuildTemplates();
