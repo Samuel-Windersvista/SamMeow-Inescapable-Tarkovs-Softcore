@@ -101,30 +101,63 @@ public class SoftcoreOtherTweaksTests
     }
 
     [Fact]
-    public void QuestChanges_AppliesCrisisAndDripOut_Only()
+    public void QuestChanges_AppliesCrisisAndDripOut_ById()
     {
         var context = NewContext(out var templates);
+
+        // Crisis：源设 A4S[1].value=30（夹具保留 2 条以验证 +30 路径）。
         var crisis = SoftcoreTestData.NewQuest(
             CrisisQuestId,
-            "Crisis",
+            $"{CrisisQuestId} name",
             [SoftcoreTestData.NewCondition("Level", 55), SoftcoreTestData.NewCondition("Level", 0)],
             []);
-        var dripOut = SoftcoreTestData.NewQuest(
-            Id(1),
-            "Drip-Out",
-            [],
-            [SoftcoreTestData.NewCondition("HandoverItem", 0), SoftcoreTestData.NewCondition("CounterCreator", 0)]);
-        var other = SoftcoreTestData.NewQuest(Id(2), "SomethingElse", [], [SoftcoreTestData.NewCondition("HandoverItem", 7)]);
         templates.Quests[CrisisQuestId] = crisis;
-        templates.Quests[Id(1)] = dripOut;
-        templates.Quests[Id(2)] = other;
+
+        // 4 个 Drip-Out：生产形态（id + 本地化键名；A4F HandoverItem=50 / CounterCreator=100）。
+        var dripOutIds = new[]
+        {
+            "6613f3007f6666d56807c929",
+            "6613f307fca4f2f386029409",
+            "66151401efb0539ae10875ae",
+            "6615141bfda04449120269a7"
+        };
+        foreach (var id in dripOutIds)
+        {
+            templates.Quests[id] = SoftcoreTestData.NewQuest(
+                id,
+                $"{id} name",
+                [],
+                [SoftcoreTestData.NewCondition("HandoverItem", 50), SoftcoreTestData.NewCondition("CounterCreator", 100)]);
+        }
+
+        // 名为 "Drip-Out"（旧式人类名）但 id 不符 → 不应被改动（按 id 匹配）。
+        var imposter = SoftcoreTestData.NewQuest(
+            Id(2), "Drip-Out", [], [SoftcoreTestData.NewCondition("HandoverItem", 50)]);
+        templates.Quests[Id(2)] = imposter;
 
         new OtherTweaksChanger().Apply(context, new SoftcoreChangeLog());
 
         Assert.Equal(30d, crisis.Conditions.AvailableForStart[1].Value);
-        Assert.Equal(10d, dripOut.Conditions.AvailableForFinish[0].Value);
-        Assert.Equal(20d, dripOut.Conditions.AvailableForFinish[1].Value);
-        Assert.Equal(7d, other.Conditions.AvailableForFinish[0].Value);
+        foreach (var id in dripOutIds)
+        {
+            var conditions = templates.Quests[id].Conditions.AvailableForFinish;
+            Assert.Equal(10d, conditions.Single(c => c.ConditionType == "HandoverItem").Value);
+            Assert.Equal(20d, conditions.Single(c => c.ConditionType == "CounterCreator").Value);
+        }
+
+        Assert.Equal(50d, imposter.Conditions.AvailableForFinish[0].Value);
+    }
+
+    [Fact]
+    public void QuestChanges_MissingDripOutIds_Warn()
+    {
+        var context = NewContext(out _);
+        var log = new SoftcoreChangeLog { Changer = new OtherTweaksChanger().Name };
+
+        new OtherTweaksChanger().Apply(context, log);
+
+        Assert.Contains(log.Warnings, w => w.Contains("6613f3007f6666d56807c929", StringComparison.Ordinal));
+        Assert.Contains(log.Warnings, w => w.Contains("6615141bfda04449120269a7", StringComparison.Ordinal));
     }
 
     [Fact]

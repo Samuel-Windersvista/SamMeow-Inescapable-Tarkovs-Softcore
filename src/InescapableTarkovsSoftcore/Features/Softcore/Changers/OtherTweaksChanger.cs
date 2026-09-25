@@ -24,6 +24,24 @@ public sealed class OtherTweaksChanger : ISoftcoreChanger
     /// <summary>危机任务 id（Crisis）。</summary>
     private const string CrisisQuestId = "60e71c48c1bfa3050473b8e5";
 
+    /// <summary>
+    /// Drip-Out 系列任务 id（源 TS 按 <c>QuestName</c> 匹配；5.0 生产 DB 的 quests.name 是本地化键
+    /// 「&lt;id&gt; name」、人类名在 locales，故按 id 匹配以免静默失效）。
+    /// </summary>
+    private static readonly string[] DripOutQuestIds =
+    [
+        "6613f3007f6666d56807c929",
+        "6613f307fca4f2f386029409",
+        "66151401efb0539ae10875ae",
+        "6615141bfda04449120269a7"
+    ];
+
+    /// <summary>Drip-Out 交付数目标（源终值；5.0 原版为 50）。</summary>
+    private const double DripOutHandoverCount = 10;
+
+    /// <summary>Drip-Out 计数目标（源终值；5.0 原版为 100）。</summary>
+    private const double DripOutCounterCount = 20;
+
     /// <summary>撤销「默认已检视」时保持原样的父类。</summary>
     private static readonly HashSet<MongoId> SkipUnexaminedParents =
     [
@@ -144,7 +162,8 @@ public sealed class OtherTweaksChanger : ISoftcoreChanger
                 log.Changed();
             }
 
-            if (options.FasterExamineTime && item.Properties is { ExamineTime: not 0 } properties)
+            // 源 TS：if (... && item._props.ExamineTime) → 仅「有检视耗时」的物品；用 > 0 表达非零正数语义。
+            if (options.FasterExamineTime && item.Properties is { ExamineTime: > 0 } properties)
             {
                 properties.ExamineTime = 0.2;
                 log.Changed();
@@ -236,6 +255,8 @@ public sealed class OtherTweaksChanger : ISoftcoreChanger
     {
         var quests = context.Tables.Templates.Quests;
 
+        // Crisis：源 TS 设 AvailableForStart[1].value=30；5.0 该任务 A4S 仅 1 条 GlobalVariableValue
+        // （Level 条件已被 BSG 移除），结构不符 → 告警跳过（记录于 delta-table §4c）。
         if (quests.TryGetValue(CrisisQuestId, out var crisis))
         {
             var start = crisis.Conditions.AvailableForStart;
@@ -246,7 +267,7 @@ public sealed class OtherTweaksChanger : ISoftcoreChanger
             }
             else
             {
-                log.Warn("Crisis 任务 AvailableForStart 结构不符（<2 项），跳过");
+                log.Warn("Crisis 任务 AvailableForStart 结构不符（<2 项，5.0 已移除 Level 条件），跳过");
             }
         }
         else
@@ -254,18 +275,25 @@ public sealed class OtherTweaksChanger : ISoftcoreChanger
             log.Warn($"未找到 Crisis 任务 {CrisisQuestId}，跳过");
         }
 
-        foreach (var quest in quests.Values.Where(quest => quest.Name?.Contains("Drip-Out", StringComparison.Ordinal) == true))
+        // Drip-Out：按 id 匹配（5.0 name 为本地化键，按名匹配会静默失效）；A4F 设源值。
+        foreach (var questId in DripOutQuestIds)
         {
+            if (!quests.TryGetValue(questId, out var quest))
+            {
+                log.Warn($"未找到 Drip-Out 任务 {questId}，跳过");
+                continue;
+            }
+
             foreach (var condition in quest.Conditions.AvailableForFinish)
             {
                 if (condition.ConditionType == "HandoverItem")
                 {
-                    condition.Value = 10;
+                    condition.Value = DripOutHandoverCount;
                     log.Changed();
                 }
                 else if (condition.ConditionType == "CounterCreator")
                 {
-                    condition.Value = 20;
+                    condition.Value = DripOutCounterCount;
                     log.Changed();
                 }
             }

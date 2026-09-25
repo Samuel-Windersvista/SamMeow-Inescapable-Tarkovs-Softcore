@@ -21,7 +21,7 @@ namespace InescapableTarkovsSoftcore.Tests;
 internal static class SoftcoreTestData
 {
     /// <summary>MongoId 必须是 24 位 hex；以下为测试专用占位 id。</summary>
-    public const string CollectorQuestId = "000000000000000000000010";
+    public const string CollectorQuestId = "5c51aac186f77432ea65c552";
 
     public const string SecuredItemId = "000000000000000000000001";
 
@@ -147,10 +147,11 @@ internal static class SoftcoreTestData
         }
     };
 
+    /// <summary>收藏家任务夹具：生产形态 —— 5.0 的 quests.name 是本地化键「&lt;id&gt; name」。</summary>
     public static Quest NewCollectorQuest() => new()
     {
         Id = CollectorQuestId,
-        Name = "Collector",
+        Name = $"{CollectorQuestId} name",
         Conditions = new QuestConditionTypes
         {
             AvailableForFinish = [],
