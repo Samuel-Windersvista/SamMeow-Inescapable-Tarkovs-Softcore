@@ -179,7 +179,33 @@ build/overlay/
       "enabled": true,                              // 药品 10×10 / Holo 10×10 / 弹匣 7×10 / 物品 6×6 /
       "biggerHideoutContainers": true,              // 武器 6×7 / 钥匙工具 5×5 / THICC 武器 6×14 / THICC 物品 6×14
       "siccCaseBuff": true
-    }
+    },
+    "fasterCraftingTime": {                         // 制造加速（T09；配方时间 = ceil(原时间 / 倍率)）
+      "enabled": true,
+      "baseCraftingTimeMultiplier": 3,              // 全局基础倍率
+      "hideoutSkillExpFix": { "enabled": true, "hideoutSkillExpMultiplier": 10 },
+      "fasterMoonshineProduction": { "enabled": true, "baseCraftingTimeMultiplier": 0.3 },
+      "fasterPurifiedWaterProduction": { "enabled": true, "baseCraftingTimeMultiplier": 0.3 },
+      "fasterCultistCircle": { "enabled": true, "baseCraftingTimeMultiplier": 0.5 }
+    },
+    "fasterHideoutConstruction": {                  // 建设加速（阶段时间 = round(原时间 / 倍率)）
+      "enabled": true,
+      "hideoutConstructionTimeMultiplier": 50
+    },
+    "fuelConsumption": { "enabled": true, "fuelConsumptionMultiplier": 4 },   // 燃料流量倍率
+    "fasterBitcoinFarming": {                       // 比特币农场
+      "enabled": true,
+      "setBitcoinPriceTo100k": false,
+      "baseBitcoinTimeMultiplier": 1.3,
+      "gpuEfficiency": 1.0
+    },
+    "scavCaseOptions": {                            // ScavCase（奖励池过滤 + 区间/配方重做 + 速度）
+      "enabled": true,
+      "betterRewards": true,
+      "fasterScavcase": { "enabled": true, "speedMultiplier": 0.5 },
+      "rebalance": true
+    },
+    "allowGymTrainingWithMusclePain": true          // 严重肌肉疼痛下健身效率 75%
   },
   "raidDuration": {                                 // G7
     "enabled": true,

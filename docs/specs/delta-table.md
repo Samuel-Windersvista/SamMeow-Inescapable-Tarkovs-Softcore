@@ -225,6 +225,8 @@ IMM `StackMult: 2`、43 条：保留 20 个注射器；删 Morphine + 全部 10 
 ### 4c 最终态（SURV）结论摘要
 
 - 藏身处：制造 3× · 建设 50× · 燃料 4× · ScavCase 速度 ×0.5 · 比特币 GPU×1 / 基础 1.3 · 渐进式仓库（50/100/150/200 行；The Unheard 250 行源自 BASE `StashOptionsChanger.ts:108`，SURV 未覆盖，保留）
+- G6-B 制造/建设/燃料/比特币/ScavCase/健身（T09）：制造全局 3×（配方时间 = ceil(原时间/3)，排除比特币/月光酒/纯净水）· 月光酒/纯净水 0.3、邪教圈 0.5 · 藏身处技能经验修复 hoursForSkillCrafting ÷10 · 建设 50× · 燃料 ×4 · 比特币时间 ÷1.3、GPU 效率 1.0、setBitcoinPriceTo100k 关 · ScavCase 父类黑名单 + 物品黑名单、价值区间与配方重做 · 健身效率 0.75。
+  - 注意：`fasterScavcase.speedMultiplier=0.5` 在源 TS 中实现为 `round(时间 / 0.5)` = 时间 ×2（语义与「更快」相反）。本项目按「以实现为准」忠实复刻该行为，待 Overseer 裁决是否按 ×0.5 时间修正。
 - 藏身处容器（SURV 覆盖终态，cellsV × cellsH）：药品 10×10 · Holodilnick 10×10 · 弹匣 7×10 · 物品 6×6 · 武器 6×7 · 钥匙工具 5×5 · THICC 武器 6×14 · THICC 物品 6×14
 - 安全容器（SURV）：腰包 2×4（源 TS 注释「腰包是 2x4」）· Alpha 3×3 · Beta 3×4 · Epsilon 3×5 · Gamma 4×5 · Kappa 5×5
 - 经济：和平主义跳蚤（1 级开放、仅全新品、价 ×1.5）· 以物易物（现金 5%、价差 30%、报价 5–13、最多 4 换 1）· priceRebalance 关
