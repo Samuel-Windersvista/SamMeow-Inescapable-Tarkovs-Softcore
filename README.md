@@ -129,5 +129,11 @@ build/overlay/
 
 ## 状态
 
+### 已实现模块
+
+- **G3 nofirhideout**（`NoFirHideoutModule`，Order=600）：遍历藏身处区域阶段的建造/升级需求
+  （`stages[].requirements` 与 `stages[].improvements[].requirements`），凡 `isSpawnedInSession`
+  为 `true` 者置 `false`；无该键的需求不变。开关 `noFirHideout.enabled` 关闭时零变更。
+
 设计访谈（grill-with-docs）已收敛；规格书与工单进行中。版本自 `0.1.0` 起步。
 
