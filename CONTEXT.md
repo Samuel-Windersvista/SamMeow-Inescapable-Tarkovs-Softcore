@@ -6,7 +6,7 @@
 
 - **整合 mod**：本项目交付物——把 Life in Norvinsk v0.3.2 的六组功能自包含重写进一个 SPT 5 服务端 mod。
 - **源 mod**：旧整合包中提供需求行为的 SPT 3.11 时代 TypeScript mod；只读参考素材，不再运行。
-- **六组功能**：① Samuel's Tweaks ② True Items Redux 物品真实堆叠 ③ nofirhideout 藏身处免打勾 ④ 反重力臂章 ⑤ 更大的背包 ⑥ Softcore 经济与制造系统大修。
+- **六组功能**：① Samuel's Tweaks ② True Items Redux 物品真实堆叠 ③ noFirHideout 藏身处免打勾 ④ 反重力臂章 ⑤ 更大的背包 ⑥ Softcore 经济与制造系统大修。
 - **战局时长控制**：v1 唯一超出六组的新增功能；形态 = 全局倍率（默认 1.0 = 原版）。
 - **组开关**：单一配置 JSON 中每组的 enabled 开关。
 - **覆盖层**：旧包中「…沉浸感增强设置」与「《难度：生存》」等后置覆盖目录；与基础 mod 叠加后决定最终数值。

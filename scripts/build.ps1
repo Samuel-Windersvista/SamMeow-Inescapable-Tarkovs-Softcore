@@ -53,9 +53,12 @@ $launcherBgDir = Join-Path $overlayRoot 'SPT_Runtime\SPT_Data\images\launcher'
     Reads samuelTweaks.customBackground / samuelTweaks.enabled from the JSONC
     config template. Missing keys default to enabled.
 .NOTES
+    Fail-closed: if the template cannot be parsed, warn and SKIP background
+    deployment (never deploy on an unreadable template).
     The template is a controlled repo file: comment stripping only removes
-    full-line / inline // comments and trailing commas; string values must not
-    contain // (none do today).
+    full-line / inline // comments and trailing commas. Naive-parse boundary:
+    a string value containing // would be mis-stripped, so config values MUST
+    NOT contain // (none do today).
 #>
 function Test-CustomBackgroundEnabled {
     param([Parameter(Mandatory)][string]$Path)
@@ -68,8 +71,8 @@ function Test-CustomBackgroundEnabled {
         $config = $text | ConvertFrom-Json
     }
     catch {
-        Write-Warning "[ITS] 解析配置模板读取 customBackground 失败，默认部署启动器背景：$($_.Exception.Message)"
-        return $true
+        Write-Warning "[ITS] 解析配置模板读取 customBackground 失败，跳过启动器背景部署（fail-closed）：$($_.Exception.Message)"
+        return $false
     }
 
     if ($config.PSObject.Properties.Name -notcontains 'samuelTweaks') {

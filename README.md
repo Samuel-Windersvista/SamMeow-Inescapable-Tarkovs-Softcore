@@ -11,7 +11,7 @@ SPT 5.0 服务端整合 mod。把 Life in Norvinsk v0.3.2 的六组功能 + 战�
 
 1. **Samuel's Tweaks**：护甲弹挂冲突修复 / 可掠夺臂章与近战 / 三格弹匣缩格 / 启动器背景
 2. **True Items Redux**：物品真实堆叠上限
-3. **nofirhideout**：藏身处建造移除 FIR 要求
+3. **noFirHideout**：藏身处建造移除 FIR 要求
 4. **反重力臂章**：臂章减重 + 堆叠
 5. **更大的背包**：背包网格扩容
 6. **Softcore 经济与制造系统大修**：20 个 changer（安全容器 / 藏身处 / 经济 / 商人 / 制造 / 保险 / 杂项）
@@ -105,6 +105,9 @@ build/overlay/
 - 服务端 `SPTarkov.Server.Core.Utils.ImageRouteImporter`（`IOnLoad`）扫描 `SPT_Data/images/` 目录并按相对路径生成 `/files/<相对路径>` 路由，故该文件即 `/files/launcher/bg`——与旧 mod `ImageRouter.addRoute("/files/launcher/bg", …)` 的语义一致。
 - 因此本工单采用**静态件覆盖**：`scripts/build.ps1` 在 `samuelTweaks.customBackground`（且 `samuelTweaks.enabled`）为真时，把 `assets/launcher/bg.png` 拷入 overlay 的上述路径；不注册服务端路由、不引入任何客户端 DLL（PerformanceTweaks 不在本工单范围）。
 - 背景改动需重启 SPT 服务器（以及清理启动器缓存）后可见。
+- 边界（H）：`scripts/build.ps1` 的 `Test-CustomBackgroundEnabled` 用朴素 JSONC 解析（剥离 `//` 行/内联注释与尾随逗号）读取模板；
+  解析失败时 **fail-closed**（告警并跳过背景，不再默认部署）。受朴素解析局限，配置值内不得包含 `//`（当前无此情形），
+  这是受控模板文件的已知边界而非面向任意 JSON 的解析器。
 
 ### 发行归档
 
@@ -133,7 +136,6 @@ build/overlay/
 ```jsonc
 {
   "general": { "enabled": true, "debug": false },   // 总开关；general.enabled=false 跳过全部功能组
-<<<<<<< HEAD
   "samuelTweaks": {                                 // G1 Samuel's Tweaks
     "enabled": true,                                // 组开关；false 时整组跳过（零变更）
     "armorConflictFix": true,                       // 护甲弹挂冲突修复
@@ -198,7 +200,7 @@ G1 语义：
 
 ### 已实现模块
 
-- **G3 nofirhideout**（`NoFirHideoutModule`，Order=600）：遍历藏身处区域阶段的建造/升级需求
+- **G3 noFirHideout**（`NoFirHideoutModule`，Order=600）：遍历藏身处区域阶段的建造/升级需求
   （`stages[].requirements` 与 `stages[].improvements[].requirements`），凡 `isSpawnedInSession`
   为 `true` 者置 `false`；无该键的需求不变。开关 `noFirHideout.enabled` 关闭时零变更。
 - **G7 raidDuration**（`RaidDurationModule`，Order=700）：`raidDuration.multiplier`（默认 1.0）
@@ -214,6 +216,11 @@ G1 语义：
 - `EscapeTimeLimitCoop` / `EscapeTimeLimitPVE`：服务器未用于战局时长，本模块不改动。
 - 注意：本仓库引用的 SP-Tushonka 源码快照与真实运行时的模型修饰符存在差异（快照为可空
   `double?`，运行时为 `required double`，且运行时模型广泛使用 `required` 成员）。实现以运行时程序集为准。
+- 组合语义（G7）：服务器自身 `RaidTimeAdjustmentService.GetRaidAdjustments` 以
+  `LocationTable.<map>.Base.EscapeTimeLimit` 为基准读取（此时该值已被本模块按倍率放大），计算后经
+  `MakeAdjustmentsToMap` 回写同一字段。故本模块的倍率参与其计算而不会被抹除，两者可组合存活。
+- 变更计数说明（G7）：计数遍历位置表全部条目，含非战局地图（如 `hideout` / `develop` / `terminal`）；
+  这些条目无玩法影响，计数偏大属预期，仅作汇报用途。
 
 设计访谈（grill-with-docs）已收敛；规格书与工单进行中。版本自 `0.1.0` 起步。
 
