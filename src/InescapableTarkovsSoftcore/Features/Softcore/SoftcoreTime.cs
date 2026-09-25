@@ -16,6 +16,12 @@ internal static class SoftcoreTime
     /// <summary>JS round(时间 / 倍率)。</summary>
     public static double ScaleRound(double time, double multiplier) => JsRound(time / multiplier);
 
+    /// <summary>JS round 后的整型（供 int 字段赋值，避免散落的 (int) 转换）。</summary>
+    public static int RoundInt(double value) => (int)JsRound(value);
+
+    /// <summary>JS round(时间 / 倍率) 后的整型。</summary>
+    public static int ScaleRoundInt(double time, double multiplier) => (int)JsRound(time / multiplier);
+
     /// <summary>倍率守卫：&lt;= 0 时告警并返回 false。</summary>
     public static bool TryMultiplier(double multiplier, string label, SoftcoreChangeLog log)
     {

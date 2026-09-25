@@ -5,8 +5,8 @@ using SPTarkov.Server.Core.Models.Spt.Tables;
 namespace InescapableTarkovsSoftcore.Features.Softcore;
 
 /// <summary>
-/// Softcore 子变换器执行上下文，按「逐次表」与「DI 单例服务」分组，
-/// 避免新增依赖时到处改动子变换器签名（防 Shotgun Surgery）。
+/// Softcore 子变换器执行上下文，按「逐次表」与「DI 单例服务」分组收纳依赖：
+/// 新增依赖只需在分组对象上添加成员，子变换器按组取用，避免改动各子变换器签名。
 /// </summary>
 public sealed class SoftcoreContext
 {
@@ -28,7 +28,7 @@ public sealed class SoftcoreTables
 
     public required TradersTable Traders { get; init; }
 
-    /// <summary>全局表（G6-B 健身效果等；G6-A 子变换器不使用）。</summary>
+    /// <summary>全局表（G6-B 健身效果；G6-C 跳蚤全局 RagFair 配置）。</summary>
     public GlobalTable? Global { get; init; }
 }
 

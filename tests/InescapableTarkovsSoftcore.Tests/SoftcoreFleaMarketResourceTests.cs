@@ -20,8 +20,8 @@ public class SoftcoreFleaMarketResourceTests
         Assert.Equal(353, data.BsgBlacklist.Count);
         Assert.Equal(93, data.ItemBaseClasses.Count);
         Assert.Equal(57, data.QuestKeys.Count);
-        // 源 markedKeys 有 7 项；SPT5 无 KEY_SHARED_BEDROOM_MARKED（已记录），落地 6 项。
-        Assert.Equal(6, data.MarkedKeys.Count);
+        // 源 markedKeys 7 项；KEY_SHARED_BEDROOM_MARKED 在 SPT5 改名为 KEY_SUBSTATION_MARKED（G4 已落地）。
+        Assert.Equal(7, data.MarkedKeys.Count);
     }
 
     [Fact]
@@ -40,6 +40,8 @@ public class SoftcoreFleaMarketResourceTests
         Assert.Equal("6740987b89d5e1ddc603f4f0", data.BsgBlacklist[^1]);
         Assert.Equal("5447b5f14bdc2d61278b4567", data.ItemBaseClasses[0]); // AssaultRifle
         Assert.Equal("5448ba0b4bdc2d02308b456c", data.QuestKeys[0]); // KEY_FACTORY_EMERGENCY_EXIT
+        Assert.Equal("5780cf7f2459777de4559322", data.MarkedKeys[0]); // KEY_DORM_ROOM_314_MARKED
         Assert.Equal("63a3a93f8a56922e82001f5d", data.MarkedKeys[^1]); // KEY_ABANDONED_FACTORY_MARKED
+        Assert.Contains("62987dfc402c7f69bf010923", data.MarkedKeys); // KEY_SUBSTATION_MARKED (rename)
     }
 }

@@ -97,4 +97,57 @@ public class SoftcoreEconomyTests
         Assert.Equal(0d, global.Configuration.RagFair.MinUserLevel);
         Assert.Equal(0d, ragfair.Dynamic.Barter.PriceRangeVariancePercent);
     }
+
+    [Fact]
+    public void OfferItemCount_ClearsAndCoversDefaultAndAmmoBox()
+    {
+        var ragfair = SoftcoreTestData.NewRagfairConfig();
+        ragfair.Dynamic.OfferItemCount["543be5cb4bdc2deb348b4568"] = new MinMax<int> { Min = 1, Max = 1 };
+        ragfair.Dynamic.OfferItemCount["other-parent"] = new MinMax<int> { Min = 1, Max = 1 };
+        var context = SoftcoreTestData.NewContext(
+            SoftcoreTestData.NewTemplates(), SoftcoreTestData.NewHideout(), SoftcoreTestData.NewTraders(),
+            SoftcoreTestData.NewHideoutConfig(), ragfair: ragfair);
+
+        new EconomyOptionsChanger().Apply(context, new SoftcoreChangeLog());
+
+        Assert.Equal(2, ragfair.Dynamic.OfferItemCount.Count); // Clear 后仅 default + AmmoBox
+        Assert.Equal(5, ragfair.Dynamic.OfferItemCount["default"].Min);
+        Assert.Equal(13, ragfair.Dynamic.OfferItemCount["default"].Max);
+        Assert.Equal(5, ragfair.Dynamic.OfferItemCount["543be5cb4bdc2deb348b4568"].Min);
+        Assert.Equal(13, ragfair.Dynamic.OfferItemCount["543be5cb4bdc2deb348b4568"].Max);
+        Assert.False(ragfair.Dynamic.OfferItemCount.ContainsKey("other-parent"));
+    }
+
+    [Fact]
+    public void DisableFleaMarketCompletely_SetsLevel99_AndSkipsOthers()
+    {
+        var ragfair = SoftcoreTestData.NewRagfairConfig();
+        var global = SoftcoreTestData.NewGlobalTable(0.25);
+        var config = new Config.SoftcoreModuleConfig();
+        config.EconomyOptions.DisableFleaMarketCompletely = true;
+        var context = SoftcoreTestData.NewContext(
+            SoftcoreTestData.NewTemplates(), SoftcoreTestData.NewHideout(), SoftcoreTestData.NewTraders(),
+            SoftcoreTestData.NewHideoutConfig(), config, global: global, ragfair: ragfair);
+
+        new EconomyOptionsChanger().Apply(context, new SoftcoreChangeLog());
+
+        Assert.Equal(99d, global.Configuration.RagFair.MinUserLevel);
+        Assert.Equal(0d, ragfair.Dynamic.Barter.PriceRangeVariancePercent); // 提前 return，barter 未改
+    }
+
+    [Fact]
+    public void PriceRebalanceEnabled_WarnsButDoesNotThrow()
+    {
+        var ragfair = SoftcoreTestData.NewRagfairConfig();
+        var config = new Config.SoftcoreModuleConfig();
+        config.EconomyOptions.PriceRebalance.Enabled = true;
+        var context = SoftcoreTestData.NewContext(
+            SoftcoreTestData.NewTemplates(), SoftcoreTestData.NewHideout(), SoftcoreTestData.NewTraders(),
+            SoftcoreTestData.NewHideoutConfig(), config, ragfair: ragfair);
+
+        var log = new SoftcoreChangeLog { Changer = new EconomyOptionsChanger().Name };
+        new EconomyOptionsChanger().Apply(context, log);
+
+        Assert.Contains(log.Warnings, warning => warning.Contains("priceRebalance", StringComparison.Ordinal));
+    }
 }

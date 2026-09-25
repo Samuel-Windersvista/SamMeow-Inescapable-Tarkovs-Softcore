@@ -13,7 +13,8 @@ public sealed class TraderChangesChanger : ISoftcoreChanger
 {
     public string Name => "traderChanges";
 
-    private const string SkierEurosQuestRewardsDeferred = "doSkierUsesEuros: 任务奖励欧元化未迁移，跳过";
+    /// <summary>弹药箱父类：ragfair 报价数按父类查询，须与 default 同范围。</summary>
+    private const string AmmoBoxParent = "543be5cb4bdc2deb348b4568";
 
     /// <summary>静态商人 id 列表（忽略自定义商人）。</summary>
     private static readonly string[] StaticTraders =
@@ -232,20 +233,15 @@ public sealed class TraderChangesChanger : ISoftcoreChanger
         {
             foreach (var barterId in barterIds)
             {
-                if (assort.BarterScheme is null
-                    || !assort.BarterScheme.TryGetValue(barterId, out var schemes)
-                    || schemes.Count == 0)
+                if (assort.BarterScheme is null || !assort.BarterScheme.TryGetValue(barterId, out var schemes))
                 {
                     continue;
                 }
 
-                var hasTarget = schemes.Any(scheme => scheme.Any(req => req.Template == requirementTemplate));
-                if (!hasTarget)
-                {
-                    continue;
-                }
-
-                foreach (var requirement in schemes[0])
+                // 精确定位目标需求（避免把调整串扰到同 scheme 的其他需求），并覆盖全部 scheme。
+                foreach (var requirement in schemes
+                             .SelectMany(scheme => scheme)
+                             .Where(requirement => requirement.Template == requirementTemplate))
                 {
                     ApplyAdjustment(requirement, mode, value);
                 }
@@ -264,7 +260,7 @@ public sealed class TraderChangesChanger : ISoftcoreChanger
                 requirement.Count = (int)((requirement.Count ?? 0) / value);
                 break;
             case BarterAdjustment.DivideAddOne:
-                requirement.Count = (int)(SoftcoreTime.JsRound((requirement.Count ?? 0) / value) + 1);
+                requirement.Count = SoftcoreTime.RoundInt((requirement.Count ?? 0) / value) + 1;
                 break;
         }
     }
@@ -293,7 +289,7 @@ public sealed class TraderChangesChanger : ISoftcoreChanger
         {
             foreach (var loyaltyLevel in baseInfo.LoyaltyLevels)
             {
-                loyaltyLevel.MinSalesSum = (long)SoftcoreTime.JsRound(loyaltyLevel.MinSalesSum / euroPrice.Value);
+                loyaltyLevel.MinSalesSum = SoftcoreTime.RoundInt(loyaltyLevel.MinSalesSum / euroPrice.Value);
             }
         }
 
@@ -310,15 +306,59 @@ public sealed class TraderChangesChanger : ISoftcoreChanger
                 var first = schemes[0][0];
                 if (first.Template == ItemTpl.MONEY_ROUBLES)
                 {
-                    first.Count = (int)(SoftcoreTime.JsRound(((first.Count ?? 0) / euroPrice.Value) * 100) / 100);
+                    // 源：Math.round((count / euroPrice) * 100) / 100 → 保留 2 位小数（Count 为 double?）。
+                    first.Count = SoftcoreTime.JsRound(((first.Count ?? 0) / euroPrice.Value) * 100) / 100;
                     first.Template = ItemTpl.MONEY_EUROS;
                 }
             }
         }
 
-        // 源还改写 Skier 任务奖励货币；Quest.Rewards 模型未迁移，暂缓。
-        log.Warn(SkierEurosQuestRewardsDeferred);
+        ApplySkierQuestRewards(context, euroPrice.Value, log);
         log.Changed();
+    }
+
+    /// <summary>Skier 任务奖励欧元化：RUB→EUR，同步 StackObjectsCount 与 reward.Value（源用 Math.ceil）。</summary>
+    private static void ApplySkierQuestRewards(SoftcoreContext context, double euroPrice, SoftcoreChangeLog log)
+    {
+        foreach (var quest in context.Tables.Templates.Quests.Values)
+        {
+            if (quest.TraderId != Traders.SKIER
+                || quest.Rewards is null
+                || !quest.Rewards.TryGetValue("Success", out var rewards)
+                || rewards is null)
+            {
+                continue;
+            }
+
+            foreach (var reward in rewards)
+            {
+                if (reward.Items is null)
+                {
+                    continue;
+                }
+
+                foreach (var item in reward.Items.Where(item => item.Template == ItemTpl.MONEY_ROUBLES).ToList())
+                {
+                    item.Template = ItemTpl.MONEY_EUROS;
+
+                    if (item.Upd?.StackObjectsCount is null)
+                    {
+                        log.Warn($"任务 {quest.Id} 奖励缺少 StackObjectsCount，跳过该奖励换算");
+                        continue;
+                    }
+
+                    item.Upd.StackObjectsCount = Math.Ceiling(item.Upd.StackObjectsCount.Value / euroPrice);
+
+                    if (reward.Value is null)
+                    {
+                        log.Warn($"任务 {quest.Id} 奖励缺少 value，跳过该奖励换算");
+                        continue;
+                    }
+
+                    reward.Value = Math.Ceiling(reward.Value.Value / euroPrice);
+                }
+            }
+        }
     }
 
     private static void ApplyBiggerLimits(SoftcoreContext context, double multiplier, SoftcoreChangeLog log)
@@ -339,7 +379,7 @@ public sealed class TraderChangesChanger : ISoftcoreChanger
             {
                 if (item.Upd?.BuyRestrictionMax is { } max)
                 {
-                    item.Upd.BuyRestrictionMax = (int)SoftcoreTime.JsRound(max * multiplier);
+                    item.Upd.BuyRestrictionMax = SoftcoreTime.RoundInt(max * multiplier);
                 }
             }
         }

@@ -15,6 +15,9 @@ public sealed class EconomyOptionsChanger : ISoftcoreChanger
 {
     public string Name => "economyOptions";
 
+    /// <summary>弹药箱父类（ragfair 报价数按父类键查询）。</summary>
+    private const string AmmoBoxParent = "543be5cb4bdc2deb348b4568";
+
     public void Apply(SoftcoreContext context, SoftcoreChangeLog log)
     {
         var options = context.Config.EconomyOptions;
@@ -184,7 +187,14 @@ public sealed class EconomyOptionsChanger : ISoftcoreChanger
         barter.PriceRangeVariancePercent = options.BarterPriceVariance;
         barter.ItemCountMax = options.ItemCountMax;
 
+        ragfair.Dynamic.OfferItemCount.Clear();
         ragfair.Dynamic.OfferItemCount["default"] = new MinMax<int>
+        {
+            Min = options.OfferItemCount.Min,
+            Max = options.OfferItemCount.Max
+        };
+        // SPT 先按父类键查询报价数、再回退 default；弹药箱等父类键须同步，保证所有物品类同范围。
+        ragfair.Dynamic.OfferItemCount[AmmoBoxParent] = new MinMax<int>
         {
             Min = options.OfferItemCount.Min,
             Max = options.OfferItemCount.Max

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace InescapableTarkovsSoftcore.Features.Softcore;
@@ -11,26 +10,7 @@ public static class ScavCaseResourceLoader
 {
     internal const string ResourceName = "InescapableTarkovsSoftcore.softcore.scavcase.json";
 
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
-    private static readonly Lazy<ScavCaseTables> Cached = new(LoadCore);
-
-    public static ScavCaseTables Load() => Cached.Value;
-
-    private static ScavCaseTables LoadCore()
-    {
-        var assembly = typeof(ScavCaseResourceLoader).Assembly;
-        using var stream = assembly.GetManifestResourceStream(ResourceName)
-            ?? throw new InvalidOperationException($"缺少内嵌资源：{ResourceName}");
-
-        return JsonSerializer.Deserialize<ScavCaseTables>(stream, Options)
-            ?? throw new InvalidOperationException($"内嵌资源解析为空：{ResourceName}");
-    }
+    public static ScavCaseTables Load() => EmbeddedJsonResource<ScavCaseTables>.Load(ResourceName);
 }
 
 /// <summary>ScavCase 数据表根。</summary>

@@ -179,4 +179,129 @@ public class SoftcoreTraderInsuranceTests
         Assert.Empty(insurance.ReturnChancePercent);
         Assert.Equal(45d, traders[Traders.PRAPOR].Base!.LoyaltyLevels![0].BuyPriceCoefficient);
     }
+
+    [Fact]
+    public void ReasonablyPricedCases_MatchesEachRequirement_WithoutCrossTalk()
+    {
+        var therapist = SoftcoreTestData.NewTrader();
+        var caseItem = new SPTarkov.Server.Core.Models.Eft.Common.Tables.Item
+        {
+            Id = "0000000000000000000000c1",
+            Template = ItemTpl.CONTAINER_ITEM_CASE
+        };
+        therapist.Assort!.Items = [caseItem];
+        therapist.Assort.BarterScheme = new Dictionary<MongoId, List<List<SPTarkov.Server.Core.Models.Eft.Common.Tables.BarterScheme>>>
+        {
+            [(MongoId)"0000000000000000000000c1"] =
+            [
+                [
+                    new SPTarkov.Server.Core.Models.Eft.Common.Tables.BarterScheme { Template = ItemTpl.MONEY_EUROS, Count = 1 },
+                    new SPTarkov.Server.Core.Models.Eft.Common.Tables.BarterScheme { Template = ItemTpl.BARTER_OPHTHALMOSCOPE, Count = 1 },
+                    new SPTarkov.Server.Core.Models.Eft.Common.Tables.BarterScheme { Template = ItemTpl.BARTER_DOGTAG_USEC, Count = 1 }
+                ],
+                [
+                    new SPTarkov.Server.Core.Models.Eft.Common.Tables.BarterScheme { Template = ItemTpl.BARTER_DOGTAG_USEC, Count = 1 }
+                ]
+            ]
+        };
+
+        var traders = SoftcoreTestData.NewTraders();
+        traders[Traders.THERAPIST] = therapist;
+        var context = SoftcoreTestData.NewContext(
+            SoftcoreTestData.NewTemplates(), SoftcoreTestData.NewHideout(), traders, SoftcoreTestData.NewHideoutConfig());
+
+        new TraderChangesChanger().Apply(context, new SoftcoreChangeLog());
+
+        var schemes = therapist.Assort.BarterScheme[(MongoId)"0000000000000000000000c1"];
+        Assert.Equal(7256, schemes[0].Single(r => r.Template == ItemTpl.MONEY_EUROS).Count);
+        Assert.Equal(8, schemes[0].Single(r => r.Template == ItemTpl.BARTER_OPHTHALMOSCOPE).Count);
+        Assert.Equal(20, schemes[0].Single(r => r.Template == ItemTpl.BARTER_DOGTAG_USEC).Count);
+        // 第二个 scheme 也被覆盖（非仅 schemes[0]）。
+        Assert.Equal(20, schemes[1].Single(r => r.Template == ItemTpl.BARTER_DOGTAG_USEC).Count);
+    }
+
+    [Fact]
+    public void SkierEuros_KeepsTwoDecimalPrecisionForBarterCount()
+    {
+        var templates = SoftcoreTestData.NewTemplates(new SPTarkov.Server.Core.Models.Eft.Common.Tables.HandbookBase
+        {
+            Categories = [],
+            Items = [SoftcoreTestData.NewHandbookItem(ItemTpl.MONEY_EUROS, 133)]
+        });
+        var skier = SoftcoreTestData.NewTrader();
+        var euroItem = new SPTarkov.Server.Core.Models.Eft.Common.Tables.Item
+        {
+            Id = "0000000000000000000000e9",
+            Template = ItemTpl.MONEY_EUROS
+        };
+        var rubItem = new SPTarkov.Server.Core.Models.Eft.Common.Tables.Item
+        {
+            Id = "0000000000000000000000e8",
+            Template = "0000000000000000000000ff"
+        };
+        skier.Assort!.Items = [euroItem, rubItem];
+        skier.Assort.BarterScheme = new Dictionary<MongoId, List<List<SPTarkov.Server.Core.Models.Eft.Common.Tables.BarterScheme>>>
+        {
+            [(MongoId)"0000000000000000000000e8"] =
+            [
+                [new SPTarkov.Server.Core.Models.Eft.Common.Tables.BarterScheme { Template = ItemTpl.MONEY_ROUBLES, Count = 65 }]
+            ]
+        };
+
+        var traders = SoftcoreTestData.NewTraders();
+        traders[Traders.SKIER] = skier;
+        var context = SoftcoreTestData.NewContext(
+            templates, SoftcoreTestData.NewHideout(), traders, SoftcoreTestData.NewHideoutConfig());
+
+        new TraderChangesChanger().Apply(context, new SoftcoreChangeLog());
+
+        var requirement = skier.Assort.BarterScheme[(MongoId)"0000000000000000000000e8"][0][0];
+        Assert.Equal(ItemTpl.MONEY_EUROS, (string)requirement.Template);
+        Assert.Equal(0.49d, requirement.Count!.Value, 2); // round(65/133*100)/100 = 0.49
+    }
+
+    [Fact]
+    public void SkierQuestRewards_ConvertRublesToEuros()
+    {
+        var templates = SoftcoreTestData.NewTemplates(new SPTarkov.Server.Core.Models.Eft.Common.Tables.HandbookBase
+        {
+            Categories = [],
+            Items = [SoftcoreTestData.NewHandbookItem(ItemTpl.MONEY_EUROS, 133)]
+        });
+
+        var quest = SoftcoreTestData.NewCollectorQuest();
+        quest.TraderId = Traders.SKIER;
+        quest.Rewards = new Dictionary<string, List<SPTarkov.Server.Core.Models.Eft.Common.Tables.Reward>>
+        {
+            ["Success"] =
+            [
+                new SPTarkov.Server.Core.Models.Eft.Common.Tables.Reward
+                {
+                    Value = 1000,
+                    Items =
+                    [
+                        new SPTarkov.Server.Core.Models.Eft.Common.Tables.Item
+                        {
+                            Id = "0000000000000000000000dd",
+                            Template = ItemTpl.MONEY_ROUBLES,
+                            Upd = new SPTarkov.Server.Core.Models.Eft.Common.Tables.Upd { StackObjectsCount = 1000 }
+                        }
+                    ]
+                }
+            ]
+        };
+        templates.Quests[SoftcoreTestData.CollectorQuestId] = quest;
+
+        var traders = SoftcoreTestData.NewTraders();
+        traders[Traders.SKIER] = SoftcoreTestData.NewTrader();
+        var context = SoftcoreTestData.NewContext(
+            templates, SoftcoreTestData.NewHideout(), traders, SoftcoreTestData.NewHideoutConfig());
+
+        new TraderChangesChanger().Apply(context, new SoftcoreChangeLog());
+
+        var reward = quest.Rewards["Success"][0];
+        Assert.Equal(ItemTpl.MONEY_EUROS, (string)reward.Items![0].Template);
+        Assert.Equal(8d, reward.Items[0].Upd!.StackObjectsCount); // ceil(1000/133)
+        Assert.Equal(8d, reward.Value); // ceil(1000/133)
+    }
 }

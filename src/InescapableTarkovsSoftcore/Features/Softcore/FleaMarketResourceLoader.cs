@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace InescapableTarkovsSoftcore.Features.Softcore;
@@ -11,26 +10,7 @@ public static class FleaMarketResourceLoader
 {
     internal const string ResourceName = "InescapableTarkovsSoftcore.softcore.fleamarket.json";
 
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
-
-    private static readonly Lazy<FleaMarketTables> Cached = new(LoadCore);
-
-    public static FleaMarketTables Load() => Cached.Value;
-
-    private static FleaMarketTables LoadCore()
-    {
-        var assembly = typeof(FleaMarketResourceLoader).Assembly;
-        using var stream = assembly.GetManifestResourceStream(ResourceName)
-            ?? throw new InvalidOperationException($"缺少内嵌资源：{ResourceName}");
-
-        return JsonSerializer.Deserialize<FleaMarketTables>(stream, Options)
-            ?? throw new InvalidOperationException($"内嵌资源解析为空：{ResourceName}");
-    }
+    public static FleaMarketTables Load() => EmbeddedJsonResource<FleaMarketTables>.Load(ResourceName);
 }
 
 /// <summary>跳蚤市场数据表根。</summary>
