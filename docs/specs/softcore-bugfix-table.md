@@ -35,3 +35,9 @@
 
 - `insuranceChanges.prapor.insuranceCostPercentage = 80`（BASE 25）存疑——按最终态保留，若属笔误在规格阶段修正。
 - True Items IMM 自定义 stim `_id` 占位符问题（详见 `delta-table.md` §3b）。
+
+## 4. T11 结项记录（G6-D）
+
+- **C1 已核对（0 失效）**：`fleamarket.json` 的 `bsgBlacklist` 353/353 全有效；同批 whitelist / questKeys / markedKeys / requestWhitelist（物品 id）与 actualBaseClasses / itemBaseClasses / pacifistFenceItemBaseWhitelist（父类 id）及 fleaListingsWhitelistHandBook（手册类目 id）全有效。详见 `delta-table.md` §4c。
+- **B3 兜底口径**：唯一性校验仅作用于本 mod 自带的新增配方资源；SPT5 原版存在 13 处合法重复 `endProduct`，不做全局去重。
+- 源码反转缺陷（记录并裁定）：`OtherTweaksChanger.vestsBlockArmor` 守卫写法与语义相反，按 SURV 终值语义落地（`false` ⇒ 弹挂与护甲不冲突）。

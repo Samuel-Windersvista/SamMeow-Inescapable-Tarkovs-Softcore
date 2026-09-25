@@ -234,7 +234,18 @@ IMM `StackMult: 2`、43 条：保留 20 个注射器；删 Morphine + 全部 10 
   - `markedKeys` 的 `KEY_SHARED_BEDROOM_MARKED` 在 SPT5 改名为 `KEY_SUBSTATION_MARKED`（`62987dfc402c7f69bf010923`），已补入 → 7 项全量落地。
   - ragfair 报价数改为「Clear + `default` + 弹药箱父类键」同范围（5–13），保证所有物品类一致（SPT 先查父类键、再回退 `default`）。
   - Skier 任务奖励欧元化已实现（遍历 Skier 任务 `Rewards.Success`，RUB→EUR，`Math.ceil` 同步 `StackObjectsCount` 与 `reward.Value`）。
-  - 未迁移项（记录）：`priceRebalance`（SURV 关闭，changer 未迁移，启用时告警）。
+   - 未迁移项（记录）：`priceRebalance`（SURV 关闭，changer 未迁移，启用时告警）。
+- G6-D 制造/杂项（T11，链道最后一票）：
+  - **制造**：配方重平衡 47 条（源 `productionAdjustments.ts` → `data/softcore/crafting-rebalance.json`，闭包录制为声明式 ops）+ 新增 12 条配方（源 `recipes.ts` 的 `additionalCraftingRecipes` → `data/softcore/crafting-recipes.json`：3-b-TG / 肾上腺素 / L1 / AHF1 / CALOK / 检眼镜 / Zagustin / Obdolbos / OLOLO / Perfotran / Trimadol / Meldonin）。
+  - **顺序约束**：`CraftingChangesChanger` 注册在 `FasterCraftingTimeChanger` 之后（源 `Softcore.ts` 顺序），新增配方 `productionTime` 保持源值（不被全局 ÷3）；测试钉住（肾上腺素 = 23，非 8）。
+  - **配方定位**：按 `endProduct` + 排除 `ChristmasIllumination`（源 3.11 `CHRISTMAS_TREE` 在 SPT5 的对应枚举）；`find` 语义仅命中首条。
+  - **唯一性兜底（B3）**：仅校验本 mod 自带配方资源的重复 `endProduct`（告警 + 去重）；不对 SPT5 原版表做全局去重——实测原版（排除 area21）存在 **13 处**合法重复 `endProduct`（如 `590a3b04…` 同站两条、`5448fee0…` 厨房/营养站各一条）。
+  - **附加配方与源差异（记录）**：12 条新增配方中有 4 条 `endProduct` 与原版 MedStation 配方同名（`5ed515f6915ec335206e4152` AHF1 / `5e8488fa988a8701445df1e4` CALOK-B / `5c0e533786f7747fa23f4d47` Zagustin / `637b6251104668754b72f8f9` Perfotran）——源 mod 行为即「追加」而非替换，本实现忠实追加（SPT 允许同 `endProduct` 多配方）。
+  - **杂项（SURV 终值）**：弹药堆叠 ×5（父类 Ammo 且 `StackMaxSize≠0`；无重量/Boss 补偿）· `vestsBlockArmor=false` ⇒ 含 `RigLayoutName` 弹挂甲 `BlocksArmorVest=false`（弹挂与护甲不冲突）· 移除背包过滤/丢弃限制/战局物品限制 · Reshala 金 TT · 任务仅 Crisis(`+30`)/Drip-Out(`10`/`20`) · 信号枪特殊槽 · 检视 0.2s · `unexaminedItemsAreBack=false`/`biggerCurrencyStacks=false`/`smallContainersInSpecialSlots=false`/`skillExpBuffs=false`。
+  - **`vestsBlockArmor` 语义裁定**：源 TS 守卫为 `if (config.vestsBlockArmor)`（与注释/意图相反，属源码反转缺陷）；SURV 终值 `false` 且项目口径为「弹挂与护甲不冲突（与 G1 修复同向）」，故本实现取 `false ⇒ 应用修复`。置 `true` 不改动。
+  - **C1 核对结论（5.x 物品 ID 有效性，SPT 5.0.0 build 47242 数据库）**：`fleamarket.json` 内 `bsgBlacklist` **353/353 全有效**；同批核对 `whitelist 29` / `questKeys 57` / `markedKeys 7` / `requestWhitelist 16`（物品 id）全有效，`actualBaseClasses 111` / `itemBaseClasses 93` / `pacifistFenceItemBaseWhitelist 17`（父类 id）全有效，`fleaListingsWhitelistHandBook 20`（手册类目 id）全有效；制造数据全部 `templateId` 与 2 个 `questId` 引用有效。**失效项：0**。
+  - **旁证（非 C1 范围）**：`scavcase.json` 的 `parentBlacklist` 含 1 个 SPT5 已不存在的父类 id（`5d52cc5ba4b9367408500062`）——作为黑名单条目不匹配任何物品，惰性无害（T09 迁移遗留，保留）。
+  - **数据外置**：`assets/productionAdjustments.ts` + `assets/recipes.ts` → `data/softcore/crafting-rebalance.json` / `crafting-recipes.json`（EmbeddedResource）；出处与再生成命令见 `data/softcore/MANIFEST.md`（工具 `scripts/tools/gen-crafting.mjs`）。
 - 藏身处容器（SURV 覆盖终态，cellsV × cellsH）：药品 10×10 · Holodilnick 10×10 · 弹匣 7×10 · 物品 6×6 · 武器 6×7 · 钥匙工具 5×5 · THICC 武器 6×14 · THICC 物品 6×14
 - 安全容器（SURV）：腰包 2×4（源 TS 注释「腰包是 2x4」）· Alpha 3×3 · Beta 3×4 · Epsilon 3×5 · Gamma 4×5 · Kappa 5×5
 - 经济：和平主义跳蚤（1 级开放、仅全新品、价 ×1.5）· 以物易物（现金 5%、价差 30%、报价 5–13、最多 4 换 1）· priceRebalance 关
