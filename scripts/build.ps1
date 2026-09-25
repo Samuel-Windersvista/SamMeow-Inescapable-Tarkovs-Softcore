@@ -6,9 +6,10 @@
 
 .DESCRIPTION
     Produces build/overlay/SPT_Runtime/user/mods/com.sammeow.inescapable-softcore/
-    containing the mod DLL, a default config.json shell, and a Resources/
-    placeholder directory. Idempotent: the overlay root is recreated on every
-    run. Any failure results in a non-zero exit code.
+    containing the mod DLL, a copy of the controlled default config template
+    (config/default-config.json), and a Resources/ placeholder directory.
+    Idempotent: the overlay root is recreated on every run. Any failure results
+    in a non-zero exit code.
 
 .PARAMETER Configuration
     Build configuration. Default: Release.
@@ -37,15 +38,7 @@ $modDirName  = 'com.sammeow.inescapable-softcore'
 $overlayRoot = Join-Path $repoRoot 'build\overlay'
 $modDir      = Join-Path $overlayRoot "SPT_Runtime\user\mods\$modDirName"
 $dllPath     = Join-Path $repoRoot "src\InescapableTarkovsSoftcore\bin\$Configuration\net10.0\$assembly.dll"
-
-$configJson = @'
-{
-  "general": {
-    "enabled": true,
-    "debug": false
-  }
-}
-'@
+$configTemplate = Join-Path $repoRoot 'config\default-config.json'
 
 try {
     Write-Host "[ITS] Building $assembly ($Configuration)..." -ForegroundColor Cyan
@@ -63,6 +56,10 @@ try {
         throw "Build output not found: $dllPath"
     }
 
+    if (-not (Test-Path -LiteralPath $configTemplate)) {
+        throw "Config template not found: $configTemplate"
+    }
+
     Write-Host "[ITS] Assembling overlay at $modDir..." -ForegroundColor Cyan
     if (Test-Path -LiteralPath $overlayRoot) {
         Remove-Item -LiteralPath $overlayRoot -Recurse -Force
@@ -73,11 +70,8 @@ try {
 
     Copy-Item -LiteralPath $dllPath -Destination $modDir -Force
 
-    $configPath = Join-Path $modDir 'config.json'
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText($configPath, $configJson + "`n", $utf8NoBom)
-    # Fail fast if the emitted shell is not valid JSON.
-    Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json | Out-Null
+    # config.json 为受控模板 config/default-config.json 的逐字节拷贝（JSONC，运行时容忍注释）
+    Copy-Item -LiteralPath $configTemplate -Destination (Join-Path $modDir 'config.json') -Force
 
     # Resources/ is a placeholder until data assets land in a later ticket.
     New-Item -ItemType File -Path (Join-Path $resourcesDir '.gitkeep') -Force | Out-Null
