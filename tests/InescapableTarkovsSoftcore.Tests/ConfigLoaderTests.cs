@@ -84,6 +84,95 @@ public class ConfigLoaderTests
     }
 
     [Fact]
+    public void Parse_NestedUnknownKey_ProducesWarning_WithFullPath()
+    {
+        const string json = """{ "samuelTweaks": { "magazineResize": { "enabled": true, "bogus": 1 } } }""";
+
+        var result = ConfigLoader.Parse(json);
+
+        Assert.Contains(
+            result.Warnings,
+            warning => warning.Contains("samuelTweaks.magazineResize.bogus", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Parse_InvalidNestedSectionType_FallsBackOnlyThatSection()
+    {
+        // magazineResize 以标量替换对象 → 仅该子节回落默认；其余有效键保留（general.enabled=false 不被重置）。
+        const string json = """
+        {
+          "general": { "enabled": false },
+          "samuelTweaks": { "armorConflictFix": false, "magazineResize": "oops" }
+        }
+        """;
+
+        var result = ConfigLoader.Parse(json);
+
+        Assert.Contains(
+            result.Warnings,
+            warning => warning.Contains("samuelTweaks.magazineResize", StringComparison.Ordinal));
+        Assert.False(result.Config.General.Enabled);
+        Assert.False(result.Config.SamuelTweaks.ArmorConflictFix);
+        Assert.Equal(10, result.Config.SamuelTweaks.MagazineResize.MinCapacity);
+        Assert.Equal(50, result.Config.SamuelTweaks.MagazineResize.MaxCapacity);
+    }
+
+    [Fact]
+    public void Parse_Overrides_InvalidInnerValues_RemovedPerKey_AndValidConfigKept()
+    {
+        const string json = """
+        {
+          "general": { "enabled": false },
+          "trueItems": {
+            "overrides": { "5672cb124bdc2d1a0f8b4568": 5, "badString": "x", "badFloat": 2.5 }
+          }
+        }
+        """;
+
+        var result = ConfigLoader.Parse(json);
+
+        Assert.Contains(
+            result.Warnings,
+            warning => warning.Contains("trueItems.overrides.badString", StringComparison.Ordinal));
+        Assert.Contains(
+            result.Warnings,
+            warning => warning.Contains("trueItems.overrides.badFloat", StringComparison.Ordinal));
+        // 其他有效配置不被重置
+        Assert.False(result.Config.General.Enabled);
+        // 坏键逐键移除，好键保留
+        Assert.Equal(5, result.Config.TrueItems.Overrides["5672cb124bdc2d1a0f8b4568"]);
+        Assert.DoesNotContain("badString", result.Config.TrueItems.Overrides.Keys);
+        Assert.DoesNotContain("badFloat", result.Config.TrueItems.Overrides.Keys);
+    }
+
+    [Fact]
+    public void Parse_IntLeaf_RejectsFractional_AndFallsBackToDefault()
+    {
+        const string json = """{ "samuelTweaks": { "magazineResize": { "minCapacity": 5.5 } } }""";
+
+        var result = ConfigLoader.Parse(json);
+
+        Assert.Contains(
+            result.Warnings,
+            warning => warning.Contains("samuelTweaks.magazineResize.minCapacity", StringComparison.Ordinal));
+        Assert.Equal(10, result.Config.SamuelTweaks.MagazineResize.MinCapacity);
+    }
+
+    [Fact]
+    public void Parse_Overrides_ValidValues_RoundTripIntoConfig()
+    {
+        const string json = """
+        { "trueItems": { "overrides": { "5672cb124bdc2d1a0f8b4568": 7, "5c164d2286f774194c5e69fa": 3 } } }
+        """;
+
+        var result = ConfigLoader.Parse(json);
+
+        Assert.Empty(result.Warnings);
+        Assert.Equal(7, result.Config.TrueItems.Overrides["5672cb124bdc2d1a0f8b4568"]);
+        Assert.Equal(3, result.Config.TrueItems.Overrides["5c164d2286f774194c5e69fa"]);
+    }
+
+    [Fact]
     public void Parse_NullSection_General_FallsBackToDefault_WithWarning()
     {
         var result = ConfigLoader.Parse("""{ "general": null }""");
