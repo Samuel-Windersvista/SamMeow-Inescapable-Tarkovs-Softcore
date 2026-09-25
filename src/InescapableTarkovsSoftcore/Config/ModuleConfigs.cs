@@ -137,6 +137,14 @@ public sealed class SoftcoreModuleConfig : ModuleConfig
     /// <summary>保险更改（G6-C）。</summary>
     [JsonPropertyName("insuranceChanges")]
     public InsuranceChangesOptions InsuranceChanges { get; set; } = new();
+
+    /// <summary>制造更改（G6-D）。</summary>
+    [JsonPropertyName("craftingChanges")]
+    public CraftingChangesOptions CraftingChanges { get; set; } = new();
+
+    /// <summary>杂项更改（G6-D）。</summary>
+    [JsonPropertyName("otherTweaks")]
+    public OtherTweaksOptions OtherTweaks { get; set; } = new();
 }
 
 /// <summary>整数区间（Min/Max）。</summary>
@@ -505,6 +513,93 @@ public sealed class HideoutContainersOptions
     /// <summary>SICC 增强（合并 Docs 允许清单并允许钥匙工具）。</summary>
     [JsonPropertyName("siccCaseBuff")]
     public bool SiccCaseBuff { get; set; } = true;
+}
+
+/// <summary>制造更改选项（默认值 = SURV 终态）。</summary>
+public sealed class CraftingChangesOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>30+ 条配方重平衡（数据 = 内嵌 crafting-rebalance.json）。</summary>
+    [JsonPropertyName("craftingRebalance")]
+    public bool CraftingRebalance { get; set; } = true;
+
+    /// <summary>新增 12 条配方（数据 = 内嵌 crafting-recipes.json）。</summary>
+    [JsonPropertyName("additionalCraftingRecipes")]
+    public bool AdditionalCraftingRecipes { get; set; } = true;
+}
+
+/// <summary>杂项更改选项（默认值 = SURV 终态）。</summary>
+public sealed class OtherTweaksOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>技能经验增益（SURV 关闭）。</summary>
+    [JsonPropertyName("skillExpBuffs")]
+    public bool SkillExpBuffs { get; set; }
+
+    /// <summary>信号手枪可放入特殊槽。</summary>
+    [JsonPropertyName("signalPistolInSpecialSlots")]
+    public bool SignalPistolInSpecialSlots { get; set; } = true;
+
+    /// <summary>撤销「默认已检视」（SURV 关闭）。</summary>
+    [JsonPropertyName("unexaminedItemsAreBack")]
+    public bool UnexaminedItemsAreBack { get; set; }
+
+    /// <summary>检视时间固定 0.2s。</summary>
+    [JsonPropertyName("fasterExamineTime")]
+    public bool FasterExamineTime { get; set; } = true;
+
+    /// <summary>移除背包/容器过滤限制。</summary>
+    [JsonPropertyName("removeBackpackRestrictions")]
+    public bool RemoveBackpackRestrictions { get; set; } = true;
+
+    /// <summary>移除丢弃限制。</summary>
+    [JsonPropertyName("removeDiscardLimit")]
+    public bool RemoveDiscardLimit { get; set; } = true;
+
+    /// <summary>Reshala 必带金色 TT。</summary>
+    [JsonPropertyName("reshalaAlwaysHasGoldenTT")]
+    public bool ReshalaAlwaysHasGoldenTT { get; set; } = true;
+
+    /// <summary>弹药堆叠放大。</summary>
+    [JsonPropertyName("biggerAmmoStacks")]
+    public BiggerAmmoStacksOptions BiggerAmmoStacks { get; set; } = new();
+
+    /// <summary>
+    /// 弹挂甲是否阻断护甲（true = 阻断）。SURV 终值 false ⇒ 含 RigLayoutName 的弹挂甲
+    /// <c>BlocksArmorVest=false</c>（弹挂与护甲不冲突），与 G1 修复同向。
+    /// </summary>
+    [JsonPropertyName("vestsBlockArmor")]
+    public bool VestsBlockArmor { get; set; }
+
+    /// <summary>任务变更（仅 Crisis + Drip-Out）。</summary>
+    [JsonPropertyName("questChanges")]
+    public bool QuestChanges { get; set; } = true;
+
+    /// <summary>移除战局内物品限制。</summary>
+    [JsonPropertyName("removeRaidItemLimits")]
+    public bool RemoveRaidItemLimits { get; set; } = true;
+
+    /// <summary>货币堆叠（SURV 关闭）。</summary>
+    [JsonPropertyName("biggerCurrencyStacks")]
+    public bool BiggerCurrencyStacks { get; set; }
+
+    /// <summary>小型容器可放入特殊槽（SURV 关闭）。</summary>
+    [JsonPropertyName("smallContainersInSpecialSlots")]
+    public bool SmallContainersInSpecialSlots { get; set; }
+}
+
+/// <summary>弹药堆叠选项。</summary>
+public sealed class BiggerAmmoStacksOptions
+{
+    [JsonPropertyName("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    [JsonPropertyName("stackMultiplier")]
+    public double StackMultiplier { get; set; } = 5;
 }
 
 /// <summary>G7 战局时长控制。</summary>

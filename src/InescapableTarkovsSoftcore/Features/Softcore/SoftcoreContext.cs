@@ -30,6 +30,9 @@ public sealed class SoftcoreTables
 
     /// <summary>全局表（G6-B 健身效果；G6-C 跳蚤全局 RagFair 配置）。</summary>
     public GlobalTable? Global { get; init; }
+
+    /// <summary>机器人表（G6-D Reshala 金 TT）。</summary>
+    public BotTable? Bots { get; init; }
 }
 
 /// <summary>DI 单例配置分组。HideoutConfig 必填；其余仅 G6-B/G6-C 使用（可空）。</summary>

@@ -113,7 +113,7 @@ public class RaidDurationModuleTests
         return module.Apply(new ModContext(config, Tables(table)));
     }
 
-    private static ModTables Tables(LocationTable table) => new(null!, null!, table, null!, null!);
+    private static ModTables Tables(LocationTable table) => new(null!, null!, table, null!, null!, null!);
 
     private static LocationTable LocationTableWith(params (string JsonName, double Limit)[] maps)
     {

@@ -39,7 +39,9 @@ public sealed class SoftcoreModule(
         new GymTrainingChanger(),
         new EconomyOptionsChanger(),
         new TraderChangesChanger(),
-        new InsuranceChangesChanger()
+        new InsuranceChangesChanger(),
+        new CraftingChangesChanger(),
+        new OtherTweaksChanger()
     ];
 
     protected override SoftcoreModuleConfig Section(SoftcoreConfig root) => root.Softcore;
@@ -54,7 +56,8 @@ public sealed class SoftcoreModule(
                 Templates = context.Tables.TemplateTable,
                 Hideout = context.Tables.HideoutTable,
                 Traders = context.Tables.TradersTable,
-                Global = context.Tables.GlobalTable
+                Global = context.Tables.GlobalTable,
+                Bots = context.Tables.BotTable
             },
             Services = new SoftcoreServices
             {

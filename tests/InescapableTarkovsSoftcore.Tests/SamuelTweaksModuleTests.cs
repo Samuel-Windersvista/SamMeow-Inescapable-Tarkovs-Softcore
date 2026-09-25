@@ -223,7 +223,7 @@ public class SamuelTweaksModuleTests
         var orchestrator = new ModuleOrchestrator(
             [new SamuelTweaksModule(new RecordingLogger<SamuelTweaksModule>())],
             new RecordingLogger<ModuleOrchestrator>(),
-            new ModTables(table, null!, null!, null!, null!));
+            new ModTables(table, null!, null!, null!, null!, null!));
 
         var report = orchestrator.Run(config);
 
@@ -275,7 +275,7 @@ public class SamuelTweaksModuleTests
     private static ModuleReport Apply(SamuelTweaksConfig section, params TemplateItem[] items)
     {
         var config = new SoftcoreConfig { SamuelTweaks = section };
-        var context = new ModContext(config, new ModTables(Table(items), null!, null!, null!, null!));
+        var context = new ModContext(config, new ModTables(Table(items), null!, null!, null!, null!, null!));
         return new SamuelTweaksModule(new RecordingLogger<SamuelTweaksModule>()).Apply(context);
     }
 

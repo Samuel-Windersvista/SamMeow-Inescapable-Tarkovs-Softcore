@@ -8,6 +8,8 @@
 |---|---|---|
 | `fleamarket.json` | `InescapableTarkovsSoftcore.softcore.fleamarket.json` | 源 mod `src/assets/fleamarket.ts`、`src/assets/keys.ts`、`src/assets/itemBaseClasses.ts` |
 | `scavcase.json` | `InescapableTarkovsSoftcore.softcore.scavcase.json` | 源 mod `src/assets/scavcase.ts` |
+| `crafting-rebalance.json` | `InescapableTarkovsSoftcore.softcore.crafting-rebalance.json` | 源 mod `src/assets/productionAdjustments.ts` |
+| `crafting-recipes.json` | `InescapableTarkovsSoftcore.softcore.crafting-recipes.json` | 源 mod `src/assets/recipes.ts`（`additionalCraftingRecipes`；`containerRecipes` 由 T08 `ContainerRecipes.cs` 承载，不重复外置） |
 
 源 mod 路径（只读快照，v0.3.2）：
 `E:\Game\EFT_Offline\Life_in_Norvinsk_v0.3.2\mods\[5]经济与制造系统大修-Softcore - 已AI优化\user\mods\odt-softcore\`
@@ -29,6 +31,21 @@ powershell -NoProfile -ExecutionPolicy Bypass `
 ```
 
 `scavcase.json` 为一次性迁移（T09 F1），其数据直接取自 `scavcase.ts`（无需符号解析）。
+
+`crafting-rebalance.json` / `crafting-recipes.json` 由 `scripts/tools/gen-crafting.mjs`（Node）从源 TS 资产生成：
+
+```powershell
+# 依赖符号表 D:\Temp\spt-symbols.json（见 scripts/tools/dump-spt-symbols.cs）
+node scripts/tools/gen-crafting.mjs `
+  --symbols D:\Temp\spt-symbols.json `
+  --source "E:\Game\EFT_Offline\Life_in_Norvinsk_v0.3.2\mods\[5]经济与制造系统大修-Softcore - 已AI优化\user\mods\odt-softcore\src"
+```
+
+生成器把 `productionAdjustments.ts` 的每条 `adjust` 闭包以「录制代理」执行为声明式 ops
+（`count` / `setAllCounts` / `setCount` / `replaceTemplate` / `setAreaLevel` / `replaceRequirements` / `pushRequirement`）；
+`recipes.ts` 的 `additionalCraftingRecipes` 为纯数据，直接序列化。脚本自检 `ItemTpl` 符号缺失（输出 `MISSING SYMBOLS`）。
+
+生成计数：`crafting-rebalance.json` 47 条调整 · `crafting-recipes.json` 12 条新增配方。
 
 ## 符号解析与重命名映射
 

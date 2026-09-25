@@ -61,7 +61,7 @@ public class SoftcoreModuleTests
         var hideout = BuildHideout();
         var traders = BuildTraders();
 
-        var tables = new ModTables(templates, hideout, null!, traders, null!);
+        var tables = new ModTables(templates, hideout, null!, traders, null!, null!);
         context = new ModContext(new SoftcoreConfig(), tables);
 
         return new SoftcoreModule(

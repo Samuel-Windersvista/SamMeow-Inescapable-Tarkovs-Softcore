@@ -196,6 +196,44 @@
         "returnTime": { "min": 120, "max": 240 },
         "insuranceCostPercentage": 50
       }
+    },
+    "craftingChanges": {
+      // 制造：30+ 条配方重平衡 + 12 条新增配方（数据内嵌 crafting-rebalance.json / crafting-recipes.json）
+      "enabled": true,
+      // 配方重平衡（按 endProduct 定位；数据 = 源 productionAdjustments.ts）
+      "craftingRebalance": true,
+      // 新增配方（3-b-TG / 肾上腺素 / L1 / AHF1-M / CALOK-B / 检眼镜 / Zagustin / Obdolbos / OLOLO 等 12 条）
+      "additionalCraftingRecipes": true
+    },
+    "otherTweaks": {
+      // 杂项（SURV 终值）：弹药堆叠 / 弹挂与护甲不冲突 / 移除限制 / Reshala / 任务 / 信号枪 / 检视
+      "enabled": true,
+      // 技能经验增益（SURV 关闭）
+      "skillExpBuffs": false,
+      // 信号手枪可放入特殊槽
+      "signalPistolInSpecialSlots": true,
+      // 撤销「默认已检视」（SURV 关闭）
+      "unexaminedItemsAreBack": false,
+      // 检视时间固定 0.2s
+      "fasterExamineTime": true,
+      // 移除背包/容器过滤限制
+      "removeBackpackRestrictions": true,
+      // 移除丢弃限制
+      "removeDiscardLimit": true,
+      // Reshala 必带金色 TT
+      "reshalaAlwaysHasGoldenTT": true,
+      // 弹药堆叠 ×5（无重量/Boss 弹药补偿）
+      "biggerAmmoStacks": { "enabled": true, "stackMultiplier": 5 },
+      // 弹挂甲阻断护甲（false = 弹挂与护甲不冲突，与 G1 修复同向）
+      "vestsBlockArmor": false,
+      // 任务变更（仅 Crisis + Drip-Out）
+      "questChanges": true,
+      // 移除战局内物品限制
+      "removeRaidItemLimits": true,
+      // 货币堆叠（SURV 关闭）
+      "biggerCurrencyStacks": false,
+      // 小型容器可放入特殊槽（SURV 关闭）
+      "smallContainersInSpecialSlots": false
     }
   },
 

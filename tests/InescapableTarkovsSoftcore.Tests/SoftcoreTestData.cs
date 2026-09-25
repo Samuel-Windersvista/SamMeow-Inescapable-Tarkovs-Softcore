@@ -1,5 +1,6 @@
 using InescapableTarkovsSoftcore.Config;
 using InescapableTarkovsSoftcore.Features.Softcore;
+using System.Runtime.CompilerServices;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
 using SPTarkov.Server.Core.Models.Eft.Common.Tables;
@@ -226,7 +227,8 @@ internal static class SoftcoreTestData
         GlobalTable? global = null,
         RagfairConfig? ragfair = null,
         TraderConfig? trader = null,
-        InsuranceConfig? insurance = null) => new()
+        InsuranceConfig? insurance = null,
+        BotTable? bots = null) => new()
     {
         Config = config ?? new SoftcoreModuleConfig(),
         Tables = new SoftcoreTables
@@ -234,7 +236,8 @@ internal static class SoftcoreTestData
             Templates = templates,
             Hideout = hideout,
             Traders = traders,
-            Global = global
+            Global = global,
+            Bots = bots
         },
         Services = new SoftcoreServices
         {
@@ -522,4 +525,121 @@ internal static class SoftcoreTestData
         Assert.Equal(cellsV, grid.CellsV);
         Assert.Equal(cellsH, grid.CellsH);
     }
+
+    // ---- G6-D 夹具 ----
+
+    /// <summary>含单个 bot 角色的机器人表（Types 为 required+init，须在初始化器中设置）。</summary>
+    public static BotTable NewBotTable(string role, BotType bot) => new()
+    {
+        Types = new Dictionary<string, BotType?>(StringComparer.Ordinal) { [role] = bot },
+        Base = null!,
+        Core = null!
+    };
+
+    /// <summary>最小 boss：chances.equipment 与 inventory.equipment 均为空字典。</summary>
+    public static BotType NewBoss()
+    {
+        var bot = (BotType)RuntimeHelpers.GetUninitializedObject(typeof(BotType));
+
+        var chances = (Chances)RuntimeHelpers.GetUninitializedObject(typeof(Chances));
+        chances.EquipmentChances = new Dictionary<string, double>(StringComparer.Ordinal) { ["Holster"] = 25 };
+        bot.BotChances = chances;
+
+        var inventory = (BotTypeInventory)RuntimeHelpers.GetUninitializedObject(typeof(BotTypeInventory));
+        inventory.Equipment = new Dictionary<SPTarkov.Server.Core.Models.Enums.EquipmentSlots, Dictionary<MongoId, double>>
+        {
+            [SPTarkov.Server.Core.Models.Enums.EquipmentSlots.Holster] = new() { [(MongoId)"5b3b713c5acfc4330140bd8c"] = 1 }
+        };
+        bot.BotInventory = inventory;
+        return bot;
+    }
+
+    /// <summary>含 AvailableForStart / AvailableForFinish 的任务（绕开 required 校验）。</summary>
+    public static Quest NewQuest(string id, string name, QuestCondition[] start, QuestCondition[] finish)
+    {
+        var quest = (Quest)RuntimeHelpers.GetUninitializedObject(typeof(Quest));
+        quest.Id = id;
+        quest.Name = name;
+        quest.TraderId = "54cb50c76803fa8b248b4571";
+        quest.Conditions = new QuestConditionTypes
+        {
+            Started = [],
+            AvailableForStart = [.. start],
+            AvailableForFinish = [.. finish],
+            Success = [],
+            Fail = [],
+            AutoStart = []
+        };
+        return quest;
+    }
+
+    /// <summary>任务条件（ConditionType + Value）。</summary>
+    public static QuestCondition NewCondition(string conditionType, double? value = null, string? id = null)
+    {
+        var condition = (QuestCondition)RuntimeHelpers.GetUninitializedObject(typeof(QuestCondition));
+        condition.Id = id ?? "000000000000000000000099";
+        condition.ConditionType = conditionType;
+        condition.Value = value;
+        return condition;
+    }
+
+    /// <summary>含 Grids/Slots 属性的物品（用于杂项测试）。</summary>
+    public static TemplateItem NewTweakItem(
+        string id,
+        string parent,
+        string? rigLayoutName = null,
+        bool? blocksArmorVest = null,
+        bool examinedByDefault = false,
+        double examineTime = 0,
+        double discardLimit = 0,
+        string type = "Item",
+        GridFilter[]? gridFilters = null,
+        Slot[]? slots = null) => new()
+    {
+        Id = id,
+        Parent = parent,
+        Type = type,
+        Properties = new TemplateItemProperties
+        {
+            RigLayoutName = rigLayoutName,
+            BlocksArmorVest = blocksArmorVest,
+            ExaminedByDefault = examinedByDefault,
+            ExamineTime = examineTime,
+            DiscardLimit = discardLimit,
+            StackMaxSize = 1,
+            Grids = gridFilters is null
+                ? []
+                : [new Grid { Properties = new GridProperties { Filters = gridFilters } }],
+            Slots = slots ?? []
+        }
+    };
+
+    /// <summary>含首个过滤器 Filter/ExcludedFilter 的网格过滤器。</summary>
+    public static GridFilter NewGridFilter(string[]? filter = null, string[]? excludedFilter = null) => new()
+    {
+        Filter = [.. (filter ?? []).Select(id => (MongoId)id)],
+        ExcludedFilter = excludedFilter is null ? null : [.. excludedFilter.Select(id => (MongoId)id)]
+    };
+
+    /// <summary>含单个槽位过滤器列表的口袋模板。</summary>
+    public static TemplateItem NewPocket(string id, string[] allowed) => new()
+    {
+        Id = id,
+        Type = "Item",
+        Properties = new TemplateItemProperties
+        {
+            Slots =
+            [
+                new Slot
+                {
+                    Id = id,
+                    Parent = id,
+                    Properties = new SlotProperties
+                    {
+                        Filters = [new SlotFilter { Filter = [.. allowed.Select(item => (MongoId)item)] }]
+                    }
+                }
+            ]
+        }
+    };
 }

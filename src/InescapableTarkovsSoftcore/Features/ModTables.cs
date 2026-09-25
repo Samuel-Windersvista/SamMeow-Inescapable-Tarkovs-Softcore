@@ -13,7 +13,8 @@ public sealed class ModTables(
     HideoutTable hideoutTable,
     LocationTable locationTable,
     TradersTable tradersTable,
-    GlobalTable globalTable)
+    GlobalTable globalTable,
+    BotTable botTable)
 {
     public TemplateTable TemplateTable { get; } = templateTable;
 
@@ -24,4 +25,7 @@ public sealed class ModTables(
     public TradersTable TradersTable { get; } = tradersTable;
 
     public GlobalTable GlobalTable { get; } = globalTable;
+
+    /// <summary>机器人表（G6-D Reshala 装备改动）。</summary>
+    public BotTable BotTable { get; } = botTable;
 }

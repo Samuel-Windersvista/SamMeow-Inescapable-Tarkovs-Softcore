@@ -1,10 +1,12 @@
 using System.Text.Json;
+using SPTarkov.Server.Core.Utils.Json.Converters;
 
 namespace InescapableTarkovsSoftcore.Features;
 
 /// <summary>
 /// 内嵌 JSON 资源加载助手：按「类型 + 资源名」缓存，统一解析选项与异常文案。
-/// 供各 ResourceLoader 复用（去重）。
+/// 供各 ResourceLoader 复用（去重）。注册 SPT 的 <see cref="StringToMongoIdConverter"/>，
+/// 使含 <c>MongoId</c> 字段的模型（如 HideoutProduction / Requirement）可直接反序列化。
 /// </summary>
 internal static class EmbeddedJsonResource<T> where T : class
 {
@@ -12,7 +14,8 @@ internal static class EmbeddedJsonResource<T> where T : class
     {
         PropertyNameCaseInsensitive = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
+        AllowTrailingCommas = true,
+        Converters = { new StringToMongoIdConverter() }
     };
 
     private static readonly Dictionary<string, Lazy<T>> Cache = new(StringComparer.Ordinal);
