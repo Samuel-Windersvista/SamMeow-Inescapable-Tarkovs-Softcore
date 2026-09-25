@@ -24,7 +24,4 @@ public sealed class ModTables(
     public TradersTable TradersTable { get; } = tradersTable;
 
     public GlobalTable GlobalTable { get; } = globalTable;
-
-    /// <summary>测试用空载体：不含真实表；测试中的 fake 模块不得触碰表。</summary>
-    public static ModTables Empty { get; } = new(null!, null!, null!, null!, null!);
 }

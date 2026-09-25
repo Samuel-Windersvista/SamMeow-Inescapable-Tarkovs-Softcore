@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using SPTarkov.Common.Models.Logging;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.Helpers.Server;
@@ -10,9 +11,9 @@ namespace InescapableTarkovsSoftcore.Config;
 
 /// <summary>
 /// 配置加载器：定位 mod 目录 → 读取（缺失则从内嵌默认模板重建）→ 两遍解析。
-/// 第一遍做键集与类型校验（未知键 / 类型非法 → 告警并从待绑定节点移除），
-/// 第二遍用 System.Text.Json 绑定到 <see cref="SoftcoreConfig"/>（缺键回落默认）。
-/// 解析容忍 <c>//</c> 注释与尾随逗号。
+/// 第一遍做键集与类型校验（键集由配置模型反射派生；未知键 / 类型非法 / 节值为 null
+/// → 告警并从待绑定节点移除），第二遍用 System.Text.Json 绑定到 <see cref="SoftcoreConfig"/>
+/// （缺键回落默认）。解析容忍 <c>//</c> 注释与尾随逗号。
 /// </summary>
 [Injectable(InjectionType.Singleton)]
 public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> logger)
@@ -20,28 +21,6 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
     public const string ConfigFileName = "config.json";
 
     private const string EmbeddedResourceName = "InescapableTarkovsSoftcore.default-config.json";
-
-    private static readonly string[] RootKeys =
-    [
-        "general",
-        "samuelTweaks",
-        "trueItems",
-        "noFirHideout",
-        "antigravArmbands",
-        "backpacks",
-        "softcore",
-        "raidDuration"
-    ];
-
-    private static readonly string[] ToggleSections =
-    [
-        "samuelTweaks",
-        "trueItems",
-        "noFirHideout",
-        "antigravArmbands",
-        "backpacks",
-        "softcore"
-    ];
 
     private static readonly JsonDocumentOptions DocumentOptions = new()
     {
@@ -162,38 +141,37 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
         return string.IsNullOrWhiteSpace(directory) ? AppContext.BaseDirectory : directory;
     }
 
+    /// <summary>根级键集与各节键集均从配置模型反射派生（读 [JsonPropertyName]），避免手写清单漂移。</summary>
     private static void ValidateRoot(JsonObject root, List<string> warnings)
     {
+        var sections = typeof(SoftcoreConfig)
+            .GetProperties()
+            .Select(property => (Name: JsonName(property), Type: property.PropertyType))
+            .ToList();
+
+        var rootNames = sections.Select(section => section.Name).ToHashSet(StringComparer.Ordinal);
         foreach (var (key, _) in root.ToList())
         {
-            if (!RootKeys.Contains(key))
+            if (!rootNames.Contains(key))
             {
                 warnings.Add($"[ITS] 未知配置键 \"{key}\"，已忽略");
                 root.Remove(key);
             }
         }
 
-        ValidateSection(root, "general", warnings, ["enabled", "debug"]);
-        foreach (var section in ToggleSections)
+        foreach (var (name, type) in sections)
         {
-            ValidateSection(root, section, warnings, ["enabled"]);
+            ValidateSection(root, name, warnings, type);
         }
-
-        ValidateSection(root, "raidDuration", warnings, ["enabled"], ["multiplier"]);
     }
 
     /// <summary>
-    /// 校验单个配置节：缺键保留默认；整节非法则移除整节（回落默认）；
+    /// 校验单个配置节：缺键保留默认；节值为 null 或非对象则以「类型非法」处理（告警 + 移除 → 回落默认）；
     /// 未知叶键 / 叶键类型非法则移除该键（回落默认）并告警。
     /// </summary>
-    private static void ValidateSection(
-        JsonObject root,
-        string sectionName,
-        List<string> warnings,
-        string[] boolKeys,
-        string[]? numberKeys = null)
+    private static void ValidateSection(JsonObject root, string sectionName, List<string> warnings, Type sectionType)
     {
-        if (!root.TryGetPropertyValue(sectionName, out var node) || node is null)
+        if (!root.TryGetPropertyValue(sectionName, out var node))
         {
             return;
         }
@@ -205,12 +183,23 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
             return;
         }
 
-        var allowed = new HashSet<string>(boolKeys, StringComparer.Ordinal);
-        if (numberKeys is not null)
+        var boolKeys = new HashSet<string>(StringComparer.Ordinal);
+        var numberKeys = new HashSet<string>(StringComparer.Ordinal);
+        var allowed = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var property in sectionType.GetProperties())
         {
-            foreach (var key in numberKeys)
+            var name = JsonName(property);
+            allowed.Add(name);
+
+            var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+            if (type == typeof(bool))
             {
-                allowed.Add(key);
+                boolKeys.Add(name);
+            }
+            else if (type == typeof(double) || type == typeof(float) || type == typeof(int) || type == typeof(long))
+            {
+                numberKeys.Add(name);
             }
         }
 
@@ -225,7 +214,7 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
 
             var valid = boolKeys.Contains(key)
                 ? value is JsonValue boolValue && boolValue.TryGetValue<bool>(out _)
-                : value is JsonValue numberValue && numberValue.TryGetValue<double>(out _);
+                : !numberKeys.Contains(key) || (value is JsonValue numberValue && numberValue.TryGetValue<double>(out _));
 
             if (!valid)
             {
@@ -234,4 +223,7 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
             }
         }
     }
+
+    private static string JsonName(PropertyInfo property) =>
+        property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
 }

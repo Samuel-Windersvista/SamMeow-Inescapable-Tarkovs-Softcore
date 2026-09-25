@@ -84,6 +84,46 @@ public class ConfigLoaderTests
     }
 
     [Fact]
+    public void Parse_NullSection_General_FallsBackToDefault_WithWarning()
+    {
+        var result = ConfigLoader.Parse("""{ "general": null }""");
+
+        Assert.Contains(result.Warnings, warning => warning.Contains("general", StringComparison.Ordinal));
+        Assert.NotNull(result.Config.General);
+        Assert.True(result.Config.General.Enabled);
+    }
+
+    [Fact]
+    public void Parse_NullSection_RaidDuration_FallsBackToDefault_WithWarning()
+    {
+        var result = ConfigLoader.Parse("""{ "raidDuration": null }""");
+
+        Assert.Contains(result.Warnings, warning => warning.Contains("raidDuration", StringComparison.Ordinal));
+        Assert.NotNull(result.Config.RaidDuration);
+        Assert.Equal(1.0, result.Config.RaidDuration.Multiplier);
+    }
+
+    [Fact]
+    public void Parse_NullSection_Backpacks_FallsBackToDefault_WithWarning()
+    {
+        var result = ConfigLoader.Parse("""{ "backpacks": null }""");
+
+        Assert.Contains(result.Warnings, warning => warning.Contains("backpacks", StringComparison.Ordinal));
+        Assert.NotNull(result.Config.Backpacks);
+        Assert.True(result.Config.Backpacks.Enabled);
+    }
+
+    [Fact]
+    public void Parse_AllModelDerivedKeys_ProduceNoUnknownKeyWarnings()
+    {
+        var result = ConfigLoader.Parse(BuildAllModelKeysJson());
+
+        Assert.DoesNotContain(
+            result.Warnings,
+            warning => warning.Contains("未知配置键", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void DefaultTemplate_KeySetMatchesModel()
     {
         var node = JsonNode.Parse(
@@ -99,6 +139,29 @@ public class ConfigLoaderTests
         var expected = ExpectedKeyPaths(typeof(SoftcoreConfig)).OrderBy(path => path, StringComparer.Ordinal).ToList();
 
         Assert.Equal(expected, actual);
+    }
+
+    /// <summary>按模型反射构造一份包含全部键（类型正确）的 JSON，用于验证键集派生覆盖模型。</summary>
+    private static string BuildAllModelKeysJson()
+    {
+        var root = new JsonObject();
+        foreach (var section in typeof(SoftcoreConfig).GetProperties())
+        {
+            var sectionObject = new JsonObject();
+            foreach (var leaf in section.PropertyType.GetProperties())
+            {
+                var leafType = Nullable.GetUnderlyingType(leaf.PropertyType) ?? leaf.PropertyType;
+                sectionObject[JsonName(leaf)] = leafType == typeof(bool)
+                    ? JsonValue.Create(true)
+                    : leafType == typeof(string)
+                        ? JsonValue.Create("x")
+                        : JsonValue.Create(1.0);
+            }
+
+            root[JsonName(section)] = sectionObject;
+        }
+
+        return root.ToJsonString();
     }
 
     private static IEnumerable<string> FlattenSectionKeys(JsonNode node)

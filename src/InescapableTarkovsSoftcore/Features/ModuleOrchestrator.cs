@@ -5,8 +5,10 @@ using SPTarkov.DI.Annotations;
 namespace InescapableTarkovsSoftcore.Features;
 
 /// <summary>
-/// 功能组编排器：按 D5 固定顺序执行已注册模块，隔离单模块异常，
-/// 逐模块输出 summary 行，末尾输出合计（前缀 [ITS]）。
+/// 功能组编排器：按各模块 <see cref="IFeatureModule.Order"/> 升序执行，隔离单模块异常，
+/// 逐模块输出 summary 行，末尾输出合计（前缀 [ITS]）。执行顺序语义（D5）：
+/// softcore=100 → samuelTweaks=200 → antigravArmbands=300 → backpacks=400 →
+/// trueItems=500 → noFirHideout=600 → raidDuration=700。
 /// </summary>
 [Injectable(InjectionType.Singleton)]
 public sealed class ModuleOrchestrator(
@@ -14,18 +16,6 @@ public sealed class ModuleOrchestrator(
     ISptLogger<ModuleOrchestrator> logger,
     ModTables tables)
 {
-    /// <summary>D5 固定应用顺序（决定重叠项胜负）。</summary>
-    public static readonly IReadOnlyList<string> ModuleOrder =
-    [
-        "softcore",
-        "samuelTweaks",
-        "antigravArmbands",
-        "backpacks",
-        "trueItems",
-        "noFirHideout",
-        "raidDuration"
-    ];
-
     /// <summary>执行一轮编排。general.enabled=false 时全部跳过。</summary>
     public OrchestrationReport Run(SoftcoreConfig config)
     {
@@ -38,27 +28,28 @@ public sealed class ModuleOrchestrator(
         var byId = new Dictionary<string, IFeatureModule>(StringComparer.Ordinal);
         foreach (var module in modules)
         {
-            if (module is not null)
+            if (module is null)
             {
-                byId.TryAdd(module.Id, module);
+                continue;
+            }
+
+            if (!byId.TryAdd(module.Id, module))
+            {
+                logger.Warning($"[ITS] 检测到重复模块 id \"{module.Id}\"，保留先注册者，忽略后者");
             }
         }
 
-        var context = new ModContext(config, logger, tables);
+        var context = new ModContext(config, tables);
         var reports = new List<ModuleReport>();
         var skipped = new List<string>();
 
-        foreach (var id in ModuleOrder)
+        // LINQ OrderBy 为稳定排序：同 Order 值保持注册顺序。
+        foreach (var module in byId.Values.OrderBy(module => module.Order))
         {
-            if (!byId.TryGetValue(id, out var module))
+            if (!module.IsEnabled(config))
             {
-                continue; // 该功能组尚未实现，静默跳过
-            }
-
-            if (!IsSectionEnabled(config, id))
-            {
-                skipped.Add(id);
-                logger.Debug($"[ITS] {id} 已在配置中禁用，跳过");
+                skipped.Add(module.Id);
+                logger.Info($"[ITS] {module.Id} 已在配置中禁用，跳过");
                 continue;
             }
 
@@ -68,8 +59,8 @@ public sealed class ModuleOrchestrator(
             }
             catch (Exception ex)
             {
-                logger.Error($"[ITS] {id} 执行失败：{ex.Message}", ex);
-                reports.Add(ModuleReport.Failed(id, ex));
+                logger.Error($"[ITS] {module.Id} 执行失败：{ex.Message}", ex);
+                reports.Add(ModuleReport.Failed(module.Id, ex));
             }
         }
 
@@ -93,17 +84,4 @@ public sealed class ModuleOrchestrator(
         var line = $"[ITS] {report.Id}: changed={report.ChangedCount}, warnings={report.Warnings.Count}";
         return report.Error is null ? line : $"{line}, error={report.Error.Message}";
     }
-
-    /// <summary>按模块 id 读取对应配置段的启用开关。</summary>
-    private static bool IsSectionEnabled(SoftcoreConfig config, string id) => id switch
-    {
-        "softcore" => config.Softcore.Enabled,
-        "samuelTweaks" => config.SamuelTweaks.Enabled,
-        "antigravArmbands" => config.AntigravArmbands.Enabled,
-        "backpacks" => config.Backpacks.Enabled,
-        "trueItems" => config.TrueItems.Enabled,
-        "noFirHideout" => config.NoFirHideout.Enabled,
-        "raidDuration" => config.RaidDuration.Enabled,
-        _ => true
-    };
 }

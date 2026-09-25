@@ -33,13 +33,9 @@ public sealed class SoftcoreConfig
     public RaidDurationConfig RaidDuration { get; set; } = new();
 }
 
-/// <summary>全局配置段。</summary>
-public sealed class GeneralConfig
+/// <summary>全局配置段：沿用模块段开关，另加 debug。</summary>
+public sealed class GeneralConfig : ModuleConfig
 {
-    /// <summary>总开关：false 时跳过全部功能模块。</summary>
-    [JsonPropertyName("enabled")]
-    public bool Enabled { get; set; } = true;
-
     /// <summary>调试模式。</summary>
     [JsonPropertyName("debug")]
     public bool Debug { get; set; }

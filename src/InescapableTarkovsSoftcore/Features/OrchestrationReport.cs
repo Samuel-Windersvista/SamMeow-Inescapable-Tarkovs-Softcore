@@ -4,7 +4,7 @@ namespace InescapableTarkovsSoftcore.Features;
 public sealed record OrchestrationReport(
     IReadOnlyList<ModuleReport> Modules,
     IReadOnlyList<string> SkippedModuleIds,
-    bool AllSkipped,
+    bool GeneralDisabled,
     int TotalChanged,
     int TotalWarnings,
     int TotalErrors);
