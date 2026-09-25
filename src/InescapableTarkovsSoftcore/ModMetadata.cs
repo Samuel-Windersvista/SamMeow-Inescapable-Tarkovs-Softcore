@@ -10,15 +10,15 @@ namespace InescapableTarkovsSoftcore;
 /// </summary>
 public sealed class ModMetadata : IModMetadata
 {
-    public string ModGuid { get; init; } = "com.sammeow.inescapable-softcore";
+    public string ModGuid { get; init; } = ModIdentity.Guid;
 
-    public string Name { get; init; } = "Inescapable Tarkov's Softcore";
+    public string Name { get; init; } = ModIdentity.Name;
 
     public string Author { get; init; } = "SamMeow";
 
     public List<string>? Contributors { get; init; }
 
-    public Version Version { get; init; } = new("0.1.0");
+    public Version Version { get; init; } = new(ModIdentity.Version);
 
     public Range SptVersion { get; init; } = new("~5.0.0");
 

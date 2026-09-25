@@ -6,18 +6,18 @@ using Xunit;
 
 namespace InescapableTarkovsSoftcore.Tests;
 
-public class ModLoaderTests
+public class ModLoadHookTests
 {
     [Fact]
     public void Loader_ImplementsIOnLoad()
     {
-        Assert.True(typeof(IOnLoad).IsAssignableFrom(typeof(ModLoader)));
+        Assert.True(typeof(IOnLoad).IsAssignableFrom(typeof(ModLoadHook)));
     }
 
     [Fact]
     public void Loader_IsInjectable_AtPreloadPlusOne()
     {
-        var attribute = typeof(ModLoader).GetCustomAttribute<Injectable>();
+        var attribute = typeof(ModLoadHook).GetCustomAttribute<Injectable>();
 
         Assert.NotNull(attribute);
         Assert.Equal(OnLoadOrder.Preload + 1, attribute!.TypePriority);
@@ -26,8 +26,6 @@ public class ModLoaderTests
     [Fact]
     public void Loader_LogLine_IsFixedItsFormat()
     {
-        Assert.StartsWith("[ITS]", ModLoader.LoadLogLine, StringComparison.Ordinal);
-        Assert.Contains("Inescapable Tarkov's Softcore", ModLoader.LoadLogLine, StringComparison.Ordinal);
-        Assert.Contains("0.1.0", ModLoader.LoadLogLine, StringComparison.Ordinal);
+        Assert.Equal("[ITS] Inescapable Tarkov's Softcore v0.1.0 loaded", ModLoadHook.LoadLogLine);
     }
 }
