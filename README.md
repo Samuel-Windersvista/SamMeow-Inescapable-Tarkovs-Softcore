@@ -205,7 +205,48 @@ build/overlay/
       "fasterScavcase": { "enabled": true, "speedMultiplier": 0.5 },
       "rebalance": true
     },
-    "allowGymTrainingWithMusclePain": true          // 严重肌肉疼痛下健身效率 75%
+    "allowGymTrainingWithMusclePain": true,          // 严重肌肉疼痛下健身效率 75%
+    "economyOptions": {                             // G6-C 经济（SURV 终态）
+      "enabled": true,
+      "disableFleaMarketCompletely": false,
+      "priceRebalance": { "enabled": false, "itemFixes": true },
+      "pacifistFleaMarket": {                       // 白名单/任务钥匙/标记钥匙 价格倍率 2/3/5
+        "enabled": true,
+        "whitelist": { "enabled": true, "priceMultiplier": 2 },
+        "questKeys": { "enabled": true, "priceMultiplier": 3 },
+        "markedKeys": { "enabled": true, "priceMultiplier": 5 }
+      },
+      "barterEconomy": {                            // 现金 5% / 价差 30 / 报价 5–13 / 非堆叠 1–4 / 最多 4 换 1
+        "enabled": true,
+        "cashOffersPercentage": 5,
+        "barterPriceVariance": 30,
+        "offerItemCount": { "min": 5, "max": 13 },
+        "nonStackableCount": { "min": 1, "max": 4 },
+        "itemCountMax": 4
+      },
+      "otherFleaMarketChanges": {                   // 1 级开放 / 仅全新品 / 价格 ×1.5
+        "enabled": true,
+        "sellingOnFlea": false,
+        "fleaMarketOpenAtLevel": 1,
+        "fleaPricesIncreased": 1.5,
+        "fleaPristineItems": true,
+        "onlyFoundInRaidItemsAllowedForBarters": false
+      }
+    },
+    "traderChanges": {                              // G6-C 商人
+      "enabled": true,
+      "betterSalesToTraders": true,                 // 收价上调（忠诚 +5%/级）
+      "alternativeCategories": true,                // Therapist 收窄 / Ragman 贵重 / Skier 信息
+      "pacifistFence": { "enabled": true, "numberOfFenceOffers": 15 },
+      "reasonablyPricedCases": true,
+      "skierUsesEuros": true,
+      "biggerLimits": { "enabled": true, "multiplier": 2.0 }
+    },
+    "insuranceChanges": {                           // G6-C 保险
+      "enabled": true,
+      "praporInsuranceChanges": { "enabled": true, "returnChance": 70, "returnTime": { "min": 240, "max": 360 }, "insuranceCostPercentage": 80 },
+      "therapistInsuranceChanges": { "enabled": true, "returnChance": 60, "returnTime": { "min": 120, "max": 240 }, "insuranceCostPercentage": 50 }
+    }
   },
   "raidDuration": {                                 // G7
     "enabled": true,

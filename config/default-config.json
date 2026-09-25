@@ -135,7 +135,68 @@
       "rebalance": true
     },
     // 允许在严重肌肉疼痛时以 75% 效率健身
-    "allowGymTrainingWithMusclePain": true
+    "allowGymTrainingWithMusclePain": true,
+    "economyOptions": {
+      // 经济：和平主义跳蚤 + 以物易物 + 其他跳蚤改动（SURV 终态）
+      "enabled": true,
+      "disableFleaMarketCompletely": false,
+      "priceRebalance": {
+        // SURV 关闭（itemFixes 仅在启用时生效）
+        "enabled": false,
+        "itemFixes": true
+      },
+      "pacifistFleaMarket": {
+        "enabled": true,
+        // 白名单/任务钥匙/标记钥匙的价格倍率
+        "whitelist": { "enabled": true, "priceMultiplier": 2 },
+        "questKeys": { "enabled": true, "priceMultiplier": 3 },
+        "markedKeys": { "enabled": true, "priceMultiplier": 5 }
+      },
+      "barterEconomy": {
+        "enabled": true,
+        // 现金购买比例（%）；价差 30；报价 5–13；非堆叠 1–4；最多 4 换 1
+        "cashOffersPercentage": 5,
+        "barterPriceVariance": 30,
+        "offerItemCount": { "min": 5, "max": 13 },
+        "nonStackableCount": { "min": 1, "max": 4 },
+        "itemCountMax": 4
+      },
+      "otherFleaMarketChanges": {
+        "enabled": true,
+        // 1 级开放、仅全新品、价格 ×1.5
+        "sellingOnFlea": false,
+        "fleaMarketOpenAtLevel": 1,
+        "fleaPricesIncreased": 1.5,
+        "fleaPristineItems": true,
+        "onlyFoundInRaidItemsAllowedForBarters": false
+      }
+    },
+    "traderChanges": {
+      // 商人：收价上调 / 类别调整 / Fence 15 报价 / 欧元 / 上限 ×2
+      "enabled": true,
+      "betterSalesToTraders": true,
+      "alternativeCategories": true,
+      "pacifistFence": { "enabled": true, "numberOfFenceOffers": 15 },
+      "reasonablyPricedCases": true,
+      "skierUsesEuros": true,
+      "biggerLimits": { "enabled": true, "multiplier": 2.0 }
+    },
+    "insuranceChanges": {
+      // 保险：Prapor 70%/80%/240–360；Therapist 60%/50%/120–240
+      "enabled": true,
+      "praporInsuranceChanges": {
+        "enabled": true,
+        "returnChance": 70,
+        "returnTime": { "min": 240, "max": 360 },
+        "insuranceCostPercentage": 80
+      },
+      "therapistInsuranceChanges": {
+        "enabled": true,
+        "returnChance": 60,
+        "returnTime": { "min": 120, "max": 240 },
+        "insuranceCostPercentage": 50
+      }
+    }
   },
 
   // 战局时长控制：multiplier 为全局倍率，1.0 = 原版时长
