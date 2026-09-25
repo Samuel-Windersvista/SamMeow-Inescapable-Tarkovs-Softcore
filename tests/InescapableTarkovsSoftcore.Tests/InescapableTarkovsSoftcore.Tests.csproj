@@ -31,6 +31,11 @@
     <Reference Update="SPTarkov.Common"><Private>true</Private></Reference>
     <Reference Update="SPTarkov.DI"><Private>true</Private></Reference>
     <Reference Update="SPTarkov.Server.Core"><Private>true</Private></Reference>
+    <!-- ISptLogger<T> 签名引用 Spectre.Console.Color，测试桩需要该程序集 -->
+    <Reference Include="Spectre.Console.Ansi">
+      <HintPath>$(SptRuntimeDir)\Spectre.Console.Ansi.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>
