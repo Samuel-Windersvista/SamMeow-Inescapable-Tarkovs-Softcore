@@ -1,0 +1,11 @@
+# C# build
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# 本地 / 临时
+*.log
+Thumbs.db
+desktop.ini
