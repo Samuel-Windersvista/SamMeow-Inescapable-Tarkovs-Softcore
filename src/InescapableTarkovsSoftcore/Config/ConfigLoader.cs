@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -185,6 +186,7 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
 
         var boolKeys = new HashSet<string>(StringComparer.Ordinal);
         var numberKeys = new HashSet<string>(StringComparer.Ordinal);
+        var objectKeys = new HashSet<string>(StringComparer.Ordinal);
         var allowed = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var property in sectionType.GetProperties())
@@ -201,6 +203,11 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
             {
                 numberKeys.Add(name);
             }
+            else if (typeof(IDictionary).IsAssignableFrom(type))
+            {
+                // 字典型叶键（如 trueItems.overrides）：值须为对象（键值对集合）。
+                objectKeys.Add(name);
+            }
         }
 
         foreach (var (key, value) in section.ToList())
@@ -212,9 +219,23 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
                 continue;
             }
 
-            var valid = boolKeys.Contains(key)
-                ? value is JsonValue boolValue && boolValue.TryGetValue<bool>(out _)
-                : !numberKeys.Contains(key) || (value is JsonValue numberValue && numberValue.TryGetValue<double>(out _));
+            bool valid;
+            if (boolKeys.Contains(key))
+            {
+                valid = value is JsonValue boolValue && boolValue.TryGetValue<bool>(out _);
+            }
+            else if (numberKeys.Contains(key))
+            {
+                valid = value is JsonValue numberValue && numberValue.TryGetValue<double>(out _);
+            }
+            else if (objectKeys.Contains(key))
+            {
+                valid = value is JsonObject;
+            }
+            else
+            {
+                valid = true;
+            }
 
             if (!valid)
             {

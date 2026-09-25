@@ -14,7 +14,15 @@ public class ModuleConfig
 public sealed class SamuelTweaksConfig : ModuleConfig;
 
 /// <summary>G2 True Items Redux 物品真实堆叠。</summary>
-public sealed class TrueItemsConfig : ModuleConfig;
+public sealed class TrueItemsConfig : ModuleConfig
+{
+    /// <summary>
+    /// 逐物品 / 父类微调：id → 目标堆叠值。最后应用，覆盖内嵌查找表结果；
+    /// key 先按物品 <c>_id</c> 精确匹配，匹配不到再按父类 <c>_parent</c> 批量匹配。
+    /// </summary>
+    [JsonPropertyName("overrides")]
+    public Dictionary<string, int> Overrides { get; set; } = new(StringComparer.Ordinal);
+}
 
 /// <summary>G3 藏身处建造免 FIR。</summary>
 public sealed class NoFirHideoutConfig : ModuleConfig;

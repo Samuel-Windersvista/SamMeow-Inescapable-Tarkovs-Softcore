@@ -36,9 +36,11 @@ SPT 5.0 服务端整合 mod。把 Life in Norvinsk v0.3.2 的六组功能 + 战�
 ```
 InescapableTarkovsSoftcore.sln
 config/default-config.json              受控默认配置模板（JSONC）
+data/trueitems/                         G2 True Items 查找表（六张 JSON，以内嵌资源打包）
 src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务端 mod）
   Config/                               配置模型与加载器
   Features/                             变换层接缝与编排器
+    TrueItems/                          G2 True Items 查找表模型 / 加载器 / 应用器 / 模块
 tests/InescapableTarkovsSoftcore.Tests/ xUnit 测试工程
 scripts/build.ps1                       构建 + overlay 组装脚本
 build/overlay/                          构建产物（git 忽略）
@@ -74,7 +76,7 @@ build/overlay/
          └─ com.sammeow.inescapable-softcore/
             ├─ InescapableTarkovsSoftcore.dll
             ├─ config.json      # config/default-config.json 的逐字节拷贝
-            └─ Resources/       # 数据资产占位（后续工单填充）
+            └─ Resources/       # 非嵌入式数据资产占位（G2 查找表已内嵌进 DLL，不在此）
 ```
 
 ### 部署映射
@@ -105,6 +107,7 @@ build/overlay/
 - 未知键：输出告警并忽略该键。
 - 缺键：使用内置默认值。
 - 值类型非法（如 `enabled` 写成字符串）：输出告警并回落默认值。
+- 字典型键（如 `trueItems.overrides`）须为 JSON 对象；写成标量同样告警并回落默认值。
 - 改动配置后需重启 SPT 服务器生效。
 
 ### 结构
@@ -113,7 +116,10 @@ build/overlay/
 {
   "general": { "enabled": true, "debug": false },   // 总开关；general.enabled=false 跳过全部功能组
   "samuelTweaks": { "enabled": true },              // G1
-  "trueItems": { "enabled": true },                 // G2
+  "trueItems": {                                   // G2
+    "enabled": true,
+    "overrides": {}                                 // id → 目标堆叠值；最后应用，覆盖内嵌查找表
+  },
   "noFirHideout": { "enabled": true },              // G3
   "antigravArmbands": { "enabled": true },          // G4
   "backpacks": { "enabled": true },                 // G5
@@ -126,6 +132,24 @@ build/overlay/
 ```
 
 各组开关独立；`raidDuration.multiplier` 调整战局时长倍率（例如 `2.0` 使地图时限翻倍）。
+
+### G2 True Items 查找表
+
+`trueItems` 组的数值来自源 mod（IMM 覆盖层）的六张查找表，已作为内嵌资源随 DLL 分发，
+运行时无需外部文件，也不投影到 overlay：
+
+| 资源 | 条目 | 语义 |
+|---|---|---|
+| barter | List 175 | 杂物/以物易物物品堆叠 |
+| clothing | List 22 | 衣物堆叠 |
+| keycards | ParentList 1 | 门卡父类堆叠 = 1（不堆叠） |
+| medicals | List 43，StackMult 2 | 仅对空医疗容器生效；注射器实得 8 |
+| partsnmods | List 104 + ParentList 10 | 源 IMM 层 `Active=false`，不生效 |
+| provisions | List 19 | 食品/饮料堆叠 |
+
+应用规则：`StackMaxSize = 条目值 × StackMult`，并置 `StackMinRandom = 1`；未命中 `_id` 输出告警并跳过；
+表 `Active=false` 时该文件零变更。`overrides` 在所有查找表之后应用：key 先按物品 `_id` 精确匹配，
+匹配不到再按父类 `_parent` 批量匹配。
 
 ## 状态
 
