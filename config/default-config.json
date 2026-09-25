@@ -1,0 +1,36 @@
+{
+  // Inescapable Tarkov's Softcore —— 默认配置
+  // 本文件支持 // 注释与尾随逗号；改动后需重启 SPT 服务器生效。
+  "general": {
+    // 总开关：false 时跳过全部功能模块
+    "enabled": true,
+    // 调试模式：输出更详细日志（各模块自行决定是否读取）
+    "debug": false
+  },
+
+  // 以下各功能组开关；具体参数随各自工单扩展
+  "samuelTweaks": {
+    "enabled": true
+  },
+  "trueItems": {
+    "enabled": true
+  },
+  "noFirHideout": {
+    "enabled": true
+  },
+  "antigravArmbands": {
+    "enabled": true
+  },
+  "backpacks": {
+    "enabled": true
+  },
+  "softcore": {
+    "enabled": true
+  },
+
+  // 战局时长控制：multiplier 为全局倍率，1.0 = 原版时长
+  "raidDuration": {
+    "enabled": true,
+    "multiplier": 1.0
+  }
+}
