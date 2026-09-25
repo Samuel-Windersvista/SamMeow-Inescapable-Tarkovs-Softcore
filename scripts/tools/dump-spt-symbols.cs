@@ -7,8 +7,11 @@
 // 使用方式（临时控制台项目，勿入库；需 .NET 10 SDK）：
 //   1. mkdir D:\Temp\dump-spt-symbols && cd D:\Temp\dump-spt-symbols
 //   2. dotnet new console
-//   3. 把本文件内容覆盖到 Program.cs
-//   4. dotnet run -- "E:\Game\EFT_Offline\SPT_5xx\SPT_Runtime" "D:\Temp\spt-symbols.json"
+//   3. 在 .csproj 内加入 <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+//      （必需：否则 assembly.GetExportedTypes() 会因无法解析
+//       Microsoft.Extensions.Hosting.Abstractions v10.0.0.0 抛 FileNotFoundException）
+//   4. 把本文件内容覆盖到 Program.cs
+//   5. dotnet run -- "E:\Game\EFT_Offline\SPT_5xx\SPT_Runtime" "D:\Temp\spt-symbols.json"
 //
 // 说明：SPT 静态枚举字段类型为 MongoId（ToString() 返回 24 位 hex），
 // 故此处对字段值调用 ToString() 后再序列化。

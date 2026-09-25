@@ -238,10 +238,20 @@ IMM `StackMult: 2`、43 条：保留 20 个注射器；删 Morphine + 全部 10 
 - G6-D 制造/杂项（T11，链道最后一票）：
   - **制造**：配方重平衡 47 条（源 `productionAdjustments.ts` → `data/softcore/crafting-rebalance.json`，闭包录制为声明式 ops）+ 新增 12 条配方（源 `recipes.ts` 的 `additionalCraftingRecipes` → `data/softcore/crafting-recipes.json`：3-b-TG / 肾上腺素 / L1 / AHF1 / CALOK / 检眼镜 / Zagustin / Obdolbos / OLOLO / Perfotran / Trimadol / Meldonin）。
   - **顺序约束**：`CraftingChangesChanger` 注册在 `FasterCraftingTimeChanger` 之后（源 `Softcore.ts` 顺序），新增配方 `productionTime` 保持源值（不被全局 ÷3）；测试钉住（肾上腺素 = 23，非 8）。
-  - **配方定位**：按 `endProduct` + 排除 `ChristmasIllumination`（源 3.11 `CHRISTMAS_TREE` 在 SPT5 的对应枚举）；`find` 语义仅命中首条。
-  - **唯一性兜底（B3）**：仅校验本 mod 自带配方资源的重复 `endProduct`（告警 + 去重）；不对 SPT5 原版表做全局去重——实测原版（排除 area21）存在 **13 处**合法重复 `endProduct`（如 `590a3b04…` 同站两条、`5448fee0…` 厨房/营养站各一条）。
+  - **配方定位**：优先按钉定 `recipeId`，否则按 `endProduct`；两者均排除 `ChristmasIllumination`（源 3.11 `CHRISTMAS_TREE` 在 SPT5 的对应枚举）；`find` 语义仅命中首条。
+  - **rebalance 首条命中漂移（T11 审查 G2，4 项）**：SPT 5.0 生产 DB 中下列 `endProduct` 各有 2 条配方，其中 3 条的首条与 3.11 的 `find` 命中不同 → 已按源目标配方 **id 钉定**（生成器 `RECIPE_ID_PINS` / JSON `recipeId`）：
+    | endProduct | 源目标（钉定） | 5.0 首条（修复前漂移） |
+    |---|---|---|
+    | `60098b1705871270cd5352a1` | `61c77cc6fcc1673f08540e9b` | `67f4ec82690e0a541a021d3d` |
+    | `5448fee04bdc2dbc018b4567` | `5dc1f4d9e078d303d91b44c7` | `67f4ebb7d0fb51b8c705e80e` |
+    | `5d6fc87386f77449db3db94e` | `5dd3c5a67da3785e63275437` | `5dd3c9c8449c0c31795b0f0b` |
+    | `590a3b0486f7743954552bdb` | `5ffcac4e1285295b7441ee01`（首条与源一致，无需钉） | — |
+    钉位验证：瓶装水 `5448fee0…` 的 `count=16` 落在 6650s 配方（而非漂移的 1200s）。
+  - **配方唯一性兜底（B3）**：仅校验本 mod 自带配方资源的重复 `endProduct`（告警 + 去重）；不对 SPT5 原版表做全局去重——实测原版（排除 area21）存在 **13 处**合法重复 `endProduct`（如 `590a3b04…` 同站两条、`5448fee0…` 厨房/营养站各一条）。
   - **附加配方与源差异（记录）**：12 条新增配方中有 4 条 `endProduct` 与原版 MedStation 配方同名（`5ed515f6915ec335206e4152` AHF1 / `5e8488fa988a8701445df1e4` CALOK-B / `5c0e533786f7747fa23f4d47` Zagustin / `637b6251104668754b72f8f9` Perfotran）——源 mod 行为即「追加」而非替换，本实现忠实追加（SPT 允许同 `endProduct` 多配方）。
-  - **杂项（SURV 终值）**：弹药堆叠 ×5（父类 Ammo 且 `StackMaxSize≠0`；无重量/Boss 补偿）· `vestsBlockArmor=false` ⇒ 含 `RigLayoutName` 弹挂甲 `BlocksArmorVest=false`（弹挂与护甲不冲突）· 移除背包过滤/丢弃限制/战局物品限制 · Reshala 金 TT · 任务仅 Crisis(`+30`)/Drip-Out(`10`/`20`) · 信号枪特殊槽 · 检视 0.2s · `unexaminedItemsAreBack=false`/`biggerCurrencyStacks=false`/`smallContainersInSpecialSlots=false`/`skillExpBuffs=false`。
+  - **杂项（SURV 终值）**：弹药堆叠 ×5（父类 Ammo 且 `StackMaxSize≠0`；无重量/Boss 补偿）· `vestsBlockArmor=false` ⇒ 含 `RigLayoutName` 弹挂甲 `BlocksArmorVest=false`（弹挂与护甲不冲突）· 移除背包过滤/丢弃限制/战局物品限制 · Reshala 金 TT · **任务按 id 匹配**（5.0 生产 DB 的 `quests.name` 是本地化键「`<id> name`」，人类名在 locales；按名匹配会静默失效）· 信号枪特殊槽 · 检视 0.2s · `unexaminedItemsAreBack=false`/`biggerCurrencyStacks=false`/`smallContainersInSpecialSlots=false`/`skillExpBuffs=false`。
+  - **任务匹配（T11 审查 G1）**：Drip-Out 4 个任务 id `6613f300…` / `6613f307…` / `66151401…` / `6615141b…`（各 A4F 1× HandoverItem / 1× CounterCreator）→ 设源终值 `HandoverItem=10`、`CounterCreator=20`（5.0 原版为 50/100；设置回 50/100 将等同 no-op，故取源值）。收藏家任务按 id `5c51aac186f77432ea65c552` 匹配。
+  - **Crisis 记录纠正（T11 审查 G3）**：源 TS 设 `AvailableForStart[1].value=30`，但 SPT 5.0 该任务 A4S 仅 1 条 `GlobalVariableValue`（**Level 条件已被 BSG 移除**），**5.0 数据不可复现 → 实现告警跳过**（属正确行为，非缺陷）。
   - **`vestsBlockArmor` 语义裁定**：源 TS 守卫为 `if (config.vestsBlockArmor)`（与注释/意图相反，属源码反转缺陷）；SURV 终值 `false` 且项目口径为「弹挂与护甲不冲突（与 G1 修复同向）」，故本实现取 `false ⇒ 应用修复`。置 `true` 不改动。
   - **C1 核对结论（5.x 物品 ID 有效性，SPT 5.0.0 build 47242 数据库）**：`fleamarket.json` 内 `bsgBlacklist` **353/353 全有效**；同批核对 `whitelist 29` / `questKeys 57` / `markedKeys 7` / `requestWhitelist 16`（物品 id）全有效，`actualBaseClasses 111` / `itemBaseClasses 93` / `pacifistFenceItemBaseWhitelist 17`（父类 id）全有效，`fleaListingsWhitelistHandBook 20`（手册类目 id）全有效；制造数据全部 `templateId` 与 2 个 `questId` 引用有效。**失效项：0**。
   - **旁证（非 C1 范围）**：`scavcase.json` 的 `parentBlacklist` 含 1 个 SPT5 已不存在的父类 id（`5d52cc5ba4b9367408500062`）——作为黑名单条目不匹配任何物品，惰性无害（T09 迁移遗留，保留）。

@@ -292,7 +292,7 @@ build/overlay/
 - **唯一性兜底（B3）**：仅校验本 mod 自带的新增配方资源（重复 `endProduct` 告警并去重）。SPT5 原版同一 `endProduct` 存在合法的多配方（例如同一物品在厨房/营养站各一条、同站不同耗时两条），故不对原版表做全局去重。
 - **`vestsBlockArmor=false`**：源 TS 的守卫写法为 `if (config.vestsBlockArmor)`（语义反转缺陷）；本实现按 SURV 终值语义落地——`false` 表示含 `RigLayoutName` 的弹挂甲 `BlocksArmorVest=false`（弹挂与护甲不冲突，与 G1 修复同向）。置 `true` 则不改动。
 - **弹药堆叠**：父类为 Ammo 且 `StackMaxSize≠0` → `×stackMultiplier`；SURV 覆盖已移除 BASE 的 Boss 弹药重量补偿（无 botConfig 依赖）。
-- **任务变更**：仅 Crisis（`AvailableForStart[1].value=30`）+ Drip-Out（`HandoverItem=10` / `CounterCreator=20`）；SURV 覆盖已移除 circulate 与 colleagues3。
+- **任务变更（按 id 匹配）**：SPT 5.0 生产 DB 的 `quests.name` 是本地化键（`<id> name`），按名匹配会静默失效，故按 id：Drip-Out 4 个任务（`6613f300…` / `6613f307…` / `66151401…` / `6615141b…`）设 `HandoverItem=10` / `CounterCreator=20`（源终值；5.0 原版 50/100）；收藏家任务按 id `5c51aac186f77432ea65c552` 重做。Crisis 在 5.0 仅 1 条 `AvailableForStart`（Level 条件已被 BSG 移除），源 `+30` 不可复现 → 告警跳过。SURV 覆盖已移除 circulate 与 colleagues3。
 - **未迁移/关闭项**：`skillExpBuffs`、`unexaminedItemsAreBack`、`biggerCurrencyStacks`、`smallContainersInSpecialSlots` 默认关闭（SURV）
 
 ### G2 True Items 查找表
