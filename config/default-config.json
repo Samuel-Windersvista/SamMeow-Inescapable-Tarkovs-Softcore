@@ -51,7 +51,8 @@
     },
     "hideoutContainers": {
       "enabled": true,
-      // 药品箱/Holodilnick/弹匣箱/物品箱/武器箱/钥匙工具 扩容
+      // 藏身处容器扩容（SURV 终态，cellsV×cellsH）：药品 10×10 / Holodilnick 10×10 /
+      // 弹匣 7×10 / 物品 6×6 / 武器 6×7 / 钥匙工具 5×5 / THICC 武器 6×14 / THICC 物品 6×14
       "biggerHideoutContainers": true,
       // SICC 增强：并入 Docs 允许清单并允许钥匙工具
       "siccCaseBuff": true

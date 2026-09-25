@@ -48,4 +48,3 @@ public class SoftcoreCollectorQuestTests
         Assert.Empty(templates.Quests[SoftcoreTestData.CollectorQuestId].Conditions.AvailableForFinish);
     }
 }
-

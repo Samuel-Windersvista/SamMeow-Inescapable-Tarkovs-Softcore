@@ -1,6 +1,5 @@
 using InescapableTarkovsSoftcore.Features.Softcore;
 using InescapableTarkovsSoftcore.Features.Softcore.Changers;
-using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Enums;
 using Xunit;
 
@@ -9,14 +8,15 @@ namespace InescapableTarkovsSoftcore.Tests;
 public class SoftcoreHideoutContainersTests
 {
     [Fact]
-    public void BiggerHideoutContainers_ApplyTaskSpecifiedSizes()
+    public void BiggerHideoutContainers_ApplySurvOverrideSizes()
     {
         var templates = SoftcoreTestData.NewTemplates();
         foreach (var template in new[]
                  {
                      ItemTpl.CONTAINER_MEDICINE_CASE, ItemTpl.CONTAINER_MR_HOLODILNICK_THERMAL_BAG,
                      ItemTpl.CONTAINER_MAGAZINE_CASE, ItemTpl.CONTAINER_ITEM_CASE,
-                     ItemTpl.CONTAINER_WEAPON_CASE, ItemTpl.CONTAINER_KEY_TOOL
+                     ItemTpl.CONTAINER_WEAPON_CASE, ItemTpl.CONTAINER_KEY_TOOL,
+                     ItemTpl.CONTAINER_THICC_WEAPON_CASE, ItemTpl.CONTAINER_THICC_ITEM_CASE
                  })
         {
             templates.Items[template] = SoftcoreTestData.NewContainer(template, 1, 1);
@@ -27,12 +27,16 @@ public class SoftcoreHideoutContainersTests
 
         new HideoutContainersChanger().Apply(context, new SoftcoreChangeLog());
 
-        AssertSize(templates, ItemTpl.CONTAINER_MEDICINE_CASE, cellsV: 10, cellsH: 10);
-        AssertSize(templates, ItemTpl.CONTAINER_MR_HOLODILNICK_THERMAL_BAG, cellsV: 10, cellsH: 10);
-        AssertSize(templates, ItemTpl.CONTAINER_MAGAZINE_CASE, cellsV: 7, cellsH: 10);
-        AssertSize(templates, ItemTpl.CONTAINER_ITEM_CASE, cellsV: 10, cellsH: 10);
-        AssertSize(templates, ItemTpl.CONTAINER_WEAPON_CASE, cellsV: 6, cellsH: 10);
-        AssertSize(templates, ItemTpl.CONTAINER_KEY_TOOL, cellsV: 5, cellsH: 5);
+        // SURV 覆盖终态（cellsV, cellsH）：药品 10×10 / Holo 10×10 / 弹匣 7×10（V7·H10）/
+        // 物品 6×6 / 武器 6×7（V6·H7）/ 钥匙工具 5×5 / THICC 武器与 THICC 物品 6×14（V6·H14）。
+        SoftcoreTestData.AssertSize(templates, ItemTpl.CONTAINER_MEDICINE_CASE, cellsV: 10, cellsH: 10);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.CONTAINER_MR_HOLODILNICK_THERMAL_BAG, cellsV: 10, cellsH: 10);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.CONTAINER_MAGAZINE_CASE, cellsV: 7, cellsH: 10);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.CONTAINER_ITEM_CASE, cellsV: 6, cellsH: 6);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.CONTAINER_WEAPON_CASE, cellsV: 6, cellsH: 7);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.CONTAINER_KEY_TOOL, cellsV: 5, cellsH: 5);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.CONTAINER_THICC_WEAPON_CASE, cellsV: 6, cellsH: 14);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.CONTAINER_THICC_ITEM_CASE, cellsV: 6, cellsH: 14);
     }
 
     [Fact]
@@ -72,12 +76,5 @@ public class SoftcoreHideoutContainersTests
 
         Assert.Equal(0, log.ChangedCount);
         Assert.Equal(7, templates.Items[ItemTpl.CONTAINER_MEDICINE_CASE].Properties!.Grids!.First().Properties!.CellsV);
-    }
-
-    private static void AssertSize(SPTarkov.Server.Core.Models.Spt.Tables.TemplateTable templates, string template, int cellsV, int cellsH)
-    {
-        var grid = templates.Items[template].Properties!.Grids!.First().Properties!;
-        Assert.Equal(cellsV, grid.CellsV);
-        Assert.Equal(cellsH, grid.CellsH);
     }
 }

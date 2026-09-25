@@ -8,7 +8,7 @@ namespace InescapableTarkovsSoftcore.Tests;
 public class SoftcoreSecureContainersTests
 {
     [Fact]
-    public void ProgressiveContainers_StartFromTwoByTwoWaistPouch()
+    public void ProgressiveContainers_StartFromWaistPouch()
     {
         var templates = SoftcoreTestData.NewTemplates();
         templates.Profiles["standard"] = SoftcoreTestData.NewProfile(
@@ -18,10 +18,10 @@ public class SoftcoreSecureContainersTests
 
         new SecureContainersChanger().Apply(context, new SoftcoreChangeLog());
 
-        var sides = new[] { templates.Profiles["standard"].Bear, templates.Profiles["standard"].Usec };
+        var sides = new[] { templates.Profiles["standard"].Bear!, templates.Profiles["standard"].Usec! };
         foreach (var side in sides)
         {
-            var secured = side!.Character!.Inventory!.Items!.Single(item => item.SlotId == "SecuredContainer");
+            var secured = side.Character!.Inventory!.Items!.Single(item => item.SlotId == "SecuredContainer");
             Assert.Equal(ItemTpl.SECURE_WAIST_POUCH, (string)secured.Template);
         }
     }
@@ -78,12 +78,13 @@ public class SoftcoreSecureContainersTests
 
         new SecureContainersChanger().Apply(context, new SoftcoreChangeLog());
 
-        AssertSize(templates, ItemTpl.SECURE_WAIST_POUCH, cellsV: 2, cellsH: 2);
-        AssertSize(templates, ItemTpl.SECURE_CONTAINER_ALPHA, cellsV: 3, cellsH: 3);
-        AssertSize(templates, ItemTpl.SECURE_CONTAINER_BETA, cellsV: 3, cellsH: 4);
-        AssertSize(templates, ItemTpl.SECURE_CONTAINER_EPSILON, cellsV: 3, cellsH: 5);
-        AssertSize(templates, ItemTpl.SECURE_CONTAINER_GAMMA, cellsV: 4, cellsH: 5);
-        AssertSize(templates, ItemTpl.SECURE_CONTAINER_KAPPA, cellsV: 5, cellsH: 5);
+        // SURV 终态（cellsV, cellsH）：腰包 2×4（源 TS 注释「腰包是 2x4」）。
+        SoftcoreTestData.AssertSize(templates, ItemTpl.SECURE_WAIST_POUCH, cellsV: 2, cellsH: 4);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.SECURE_CONTAINER_ALPHA, cellsV: 3, cellsH: 3);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.SECURE_CONTAINER_BETA, cellsV: 3, cellsH: 4);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.SECURE_CONTAINER_EPSILON, cellsV: 3, cellsH: 5);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.SECURE_CONTAINER_GAMMA, cellsV: 4, cellsH: 5);
+        SoftcoreTestData.AssertSize(templates, ItemTpl.SECURE_CONTAINER_KAPPA, cellsV: 5, cellsH: 5);
     }
 
     [Fact]
@@ -105,12 +106,5 @@ public class SoftcoreSecureContainersTests
         Assert.Equal(
             ItemTpl.SECURE_CONTAINER_GAMMA,
             (string)templates.Profiles["standard"].Bear!.Character!.Inventory!.Items!.Single(i => i.SlotId == "SecuredContainer").Template);
-    }
-
-    private static void AssertSize(SPTarkov.Server.Core.Models.Spt.Tables.TemplateTable templates, string template, int cellsV, int cellsH)
-    {
-        var grid = templates.Items[template].Properties!.Grids!.First().Properties!;
-        Assert.Equal(cellsV, grid.CellsV);
-        Assert.Equal(cellsH, grid.CellsH);
     }
 }

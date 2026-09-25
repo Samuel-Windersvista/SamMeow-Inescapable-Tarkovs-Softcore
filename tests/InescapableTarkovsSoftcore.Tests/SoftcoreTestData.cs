@@ -8,6 +8,7 @@ using SPTarkov.Server.Core.Models.Enums.Hideout;
 using SPTarkov.Server.Core.Models.Spt.Config;
 using SPTarkov.Server.Core.Models.Spt.Tables;
 using SPTarkov.Server.Core.Utils.Json;
+using Xunit;
 
 namespace InescapableTarkovsSoftcore.Tests;
 
@@ -229,4 +230,12 @@ internal static class SoftcoreTestData
     };
 
     public static ListOrT<string> ListOf(params string[] items) => new([.. items], null);
+
+    /// <summary>断言模板首个网格的 (cellsV, cellsH)。</summary>
+    public static void AssertSize(TemplateTable templates, string template, int cellsV, int cellsH)
+    {
+        var grid = templates.Items[template].Properties!.Grids!.First().Properties!;
+        Assert.Equal(cellsV, grid.CellsV);
+        Assert.Equal(cellsH, grid.CellsH);
+    }
 }

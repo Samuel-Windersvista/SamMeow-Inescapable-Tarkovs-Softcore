@@ -74,7 +74,8 @@ public class SoftcoreStashTests
         Assert.Equal(500, requirements.Single(r => r.TemplateId == Money.ROUBLES).Count);
         Assert.Equal(30, requirements.Single(r => r.TemplateId == Money.EUROS).Count);
         Assert.Equal(7, requirements.Single(r => (string)r.TemplateId == "5d235b4d86f7742e017bc88a").Count);
-        // easierLoyalty 鍦?SURV 缁堟€佷负 false 鈫?蹇犺瘹搴﹁姹備繚鎸佷笉鍙樸€?        Assert.Equal(3, requirements.Single(r => r.LoyaltyLevel.HasValue).LoyaltyLevel);
+        // easierLoyalty 在 SURV 终态为 false，故忠诚度要求保持不变。
+        Assert.Equal(3, requirements.Single(r => r.LoyaltyLevel.HasValue).LoyaltyLevel);
     }
 
     [Fact]
@@ -95,4 +96,3 @@ public class SoftcoreStashTests
         Assert.Equal(4, templates.Profiles["standard"].Bear!.Character!.Hideout!.Areas!.Single(a => a.Type == HideoutAreas.Stash).Level);
     }
 }
-

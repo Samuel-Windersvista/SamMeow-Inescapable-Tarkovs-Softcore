@@ -14,7 +14,7 @@ public sealed class SecureContainersChanger : ISoftcoreChanger
     /// <summary>SURV 终态尺寸（cellsV = 高/行，cellsH = 宽/列）。</summary>
     private static readonly (string Template, int CellsV, int CellsH)[] Sizes =
     [
-        (ItemTpl.SECURE_WAIST_POUCH, 2, 2),
+        (ItemTpl.SECURE_WAIST_POUCH, 2, 4),
         (ItemTpl.SECURE_CONTAINER_ALPHA, 3, 3),
         (ItemTpl.SECURE_CONTAINER_BETA, 3, 4),
         (ItemTpl.SECURE_CONTAINER_EPSILON, 3, 5),
@@ -97,15 +97,12 @@ public sealed class SecureContainersChanger : ISoftcoreChanger
     {
         foreach (var (template, cellsV, cellsH) in Sizes)
         {
-            if (!context.Templates.Items.TryGetValue(template, out var item)
-                || item.Properties?.Grids?.FirstOrDefault()?.Properties is not { } grid)
+            if (!SoftcoreGrids.TrySetCells(context.Templates, template, cellsV, cellsH))
             {
                 log.Warn($"modifyContainer: 未找到安全容器 {template}，跳过");
                 continue;
             }
 
-            grid.CellsV = cellsV;
-            grid.CellsH = cellsH;
             log.Changed();
         }
     }

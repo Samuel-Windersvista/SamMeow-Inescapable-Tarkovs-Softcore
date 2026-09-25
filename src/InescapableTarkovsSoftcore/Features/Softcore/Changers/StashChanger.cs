@@ -111,14 +111,12 @@ public sealed class StashChanger : ISoftcoreChanger
     {
         foreach (var (template, rows) in StashSizes)
         {
-            if (!context.Templates.Items.TryGetValue(template, out var item)
-                || item.Properties?.Grids?.FirstOrDefault()?.Properties is not { } grid)
+            if (!SoftcoreGrids.TrySetCells(context.Templates, template, rows))
             {
                 log.Warn($"doBiggerStash: 未找到仓库 {template}，跳过");
                 continue;
             }
 
-            grid.CellsV = rows;
             log.Changed();
         }
     }
