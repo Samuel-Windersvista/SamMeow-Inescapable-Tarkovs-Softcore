@@ -117,7 +117,26 @@ build/overlay/
   "noFirHideout": { "enabled": true },              // G3
   "antigravArmbands": { "enabled": true },          // G4
   "backpacks": { "enabled": true },                 // G5
-  "softcore": { "enabled": true },                  // G6
+  "softcore": {                                     // G6（T08 起子结构对齐源 config.json5）
+    "enabled": true,
+    "secureContainersOptions": {                    // 安全容器：2×2 腰包起步 → Kappa
+      "enabled": true,
+      "progressiveContainers": { "enabled": true, "collectorQuestRedone": true },
+      "biggerContainers": true
+    },
+    "stashOptions": {                               // 仓库：LVL1 起步，50/100/150/200 行，建造现金 ÷10
+      "enabled": true,
+      "progressiveStash": true,
+      "biggerStash": true,
+      "lessCurrencyForConstruction": true,
+      "easierLoyalty": false
+    },
+    "hideoutContainers": {                          // 藏身处容器扩容 + SICC 增强
+      "enabled": true,
+      "biggerHideoutContainers": true,
+      "siccCaseBuff": true
+    }
+  },
   "raidDuration": {                                 // G7
     "enabled": true,
     "multiplier": 1.0                               // 全局战局时长倍率；1.0 = 原版，2.0 = 翻倍
@@ -125,7 +144,7 @@ build/overlay/
 }
 ```
 
-各组开关独立；`raidDuration.multiplier` 调整战局时长倍率（例如 `2.0` 使地图时限翻倍）。
+各组开关独立；`raidDuration.multiplier` 调整战局时长倍率（例如 `2.0` 使地图时限翻倍）。`softcore` 段随 G6 串行链（T08–T11）逐步扩展，子开关默认值 = 旧包 SURV 终态。
 
 ## 状态
 
