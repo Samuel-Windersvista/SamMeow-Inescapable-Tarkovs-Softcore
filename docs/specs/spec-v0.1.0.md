@@ -1,6 +1,7 @@
 # Spec: Inescapable Tarkov's Softcore v0.1.0
 
 > 状态：ready-for-agent ｜ 目标版本：v0.1.0 ｜ 日期：2026-09-26
+> 发布：GitHub issue #1（`Samuel-Windersvista/SamMeow-Inescapable-Tarkovs-Softcore`）；本文件为随仓库快照，以 issue 为准。
 > 来源：grill-with-docs 设计收敛（两轮 12 项决策 + 测试接缝确认）与 6 轮只读侦察
 > 术语：以 `CONTEXT.md` 为准
 > 附件：`docs/specs/delta-table.md`（默认值差异表）· `docs/specs/softcore-bugfix-table.md`（缺陷清单，替换过期 optimization-plan）
