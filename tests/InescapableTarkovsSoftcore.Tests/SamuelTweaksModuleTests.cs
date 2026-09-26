@@ -103,6 +103,14 @@ public class SamuelTweaksModuleTests
         Assert.False(present.Properties.Unlootable);
     }
 
+    [Fact]
+    public void ParentIds_MatchSpt5Semantics_ArmbandVsKnife()
+    {
+        // 源数据（LootTweak.ts:9-10）臂章/近战父类错标对调；R1-D 按 SPT5 实际语义纠正。
+        Assert.Equal("5b3f15d486f77432d0509248", SamuelTweaksModule.ArmbandParentId);   // ArmBand
+        Assert.Equal("5447e1d04bdc2dff2f8b4567", SamuelTweaksModule.MeleeWeaponParentId); // Knife
+    }
+
     // ---------------------------------------------------------------- 规则 3：弹匣缩格
 
     [Theory]

@@ -18,11 +18,17 @@ public sealed class SamuelTweaksModule(
     /// <summary>D5 顺序常量。</summary>
     public const int OrderValue = 200;
 
-    /// <summary>臂章父类 ID。</summary>
-    public const string ArmbandParentId = "5447e1d04bdc2dff2f8b4567";
+    /// <summary>
+    /// 臂章父类 ID（SPT5 `ArmBand` = 5b3f15d486f77432d0509248）。
+    /// <para>源数据（Samuel's Tweaks `LootTweak.ts:9-10`）把臂章/近战父类错标对调；此处已按 SPT5 实际语义纠正。</para>
+    /// </summary>
+    public const string ArmbandParentId = "5b3f15d486f77432d0509248";
 
-    /// <summary>近战武器类目 ID。</summary>
-    public const string MeleeWeaponParentId = "5b3f15d486f77432d0509248";
+    /// <summary>
+    /// 近战武器（刀）类目 ID（SPT5 `Knife` = 5447e1d04bdc2dff2f8b4567）。
+    /// <para>同源错标说明见 <see cref="ArmbandParentId"/>；默认双开行为不变，单开关语义修正。</para>
+    /// </summary>
+    public const string MeleeWeaponParentId = "5447e1d04bdc2dff2f8b4567";
 
     /// <summary>弹匣类目 ID。</summary>
     public const string MagazineParentId = "5448bc234bdc2d3c308b4569";
