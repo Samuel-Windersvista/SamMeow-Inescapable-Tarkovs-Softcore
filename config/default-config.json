@@ -26,9 +26,7 @@
       "enabled": true,
       "minCapacity": 10,
       "maxCapacity": 50
-    },
-    // 启动器自定义背景（构建期静态件：assets/launcher/bg.png → SPT_Data/images/launcher/bg.png）
-    "customBackground": true
+    }
   },
   "trueItems": {
     "enabled": true,
@@ -46,7 +44,10 @@
     "overrides": {}
   },
   "backpacks": {
-    "enabled": true
+    "enabled": true,
+    // 逐背包覆盖：id → { cellsH/cellsV（绝对值）, colsDelta/rowsDelta（在结果之上增减，clamp ≥1） }
+    // 例：{ "5df8a4d786f77412672a1e3b": { "rowsDelta": 2, "colsDelta": 1 } }（在原基础上加 2 行 1 列）
+    "overrides": {}
   },
   "softcore": {
     // Softcore 经济与制造系统大修（子结构对齐源 config.json5；数值为 SURV 终态）

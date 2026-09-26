@@ -10,7 +10,7 @@ public class ModuleConfig
     public bool Enabled { get; set; } = true;
 }
 
-/// <summary>G1 Samuel's Tweaks：护甲弹挂冲突修复 / 可掠夺 / 弹匣缩格 / 启动器背景。</summary>
+/// <summary>G1 Samuel's Tweaks：护甲弹挂冲突修复 / 可掠夺 / 弹匣缩格。</summary>
 public sealed class SamuelTweaksConfig : ModuleConfig
 {
     /// <summary>护甲弹挂冲突修复：含 RigLayoutName 的弹挂甲 → BlocksArmorVest=false。</summary>
@@ -24,10 +24,6 @@ public sealed class SamuelTweaksConfig : ModuleConfig
     /// <summary>扩展弹匣缩格子节。</summary>
     [JsonPropertyName("magazineResize")]
     public MagazineResizeConfig MagazineResize { get; set; } = new();
-
-    /// <summary>启动器自定义背景：构建期静态件（见 scripts/build.ps1），运行时无操作。</summary>
-    [JsonPropertyName("customBackground")]
-    public bool CustomBackground { get; set; } = true;
 }
 
 /// <summary>G1 可掠夺物品开关（臂章 / 近战武器）。</summary>
@@ -85,7 +81,35 @@ public sealed class AntigravArmbandsConfig : ModuleConfig
 }
 
 /// <summary>G5 更大的背包。</summary>
-public sealed class BackpacksConfig : ModuleConfig;
+public sealed class BackpacksConfig : ModuleConfig
+{
+    /// <summary>
+    /// 逐背包覆盖：id → 覆盖项。应用顺序 = 内嵌查找表 → 绝对覆盖（cellsH/cellsV）
+    /// → 增量覆盖（colsDelta/rowsDelta，在当前结果之上增减，clamp ≥1）→ 清空容器过滤。
+    /// </summary>
+    [JsonPropertyName("overrides")]
+    public Dictionary<string, BackpackOverride> Overrides { get; set; } = new(StringComparer.Ordinal);
+}
+
+/// <summary>单个背包的尺寸覆盖（绝对值与增量，增量在绝对值/查找表结果之上叠加）。</summary>
+public sealed class BackpackOverride
+{
+    /// <summary>绝对列数（宽）。</summary>
+    [JsonPropertyName("cellsH")]
+    public int? CellsH { get; set; }
+
+    /// <summary>绝对行数（高）。</summary>
+    [JsonPropertyName("cellsV")]
+    public int? CellsV { get; set; }
+
+    /// <summary>在（表 / 绝对值）结果之上增加的行数（可负，结果 clamp ≥1）。</summary>
+    [JsonPropertyName("rowsDelta")]
+    public int? RowsDelta { get; set; }
+
+    /// <summary>在（表 / 绝对值）结果之上增加的列数（可负，结果 clamp ≥1）。</summary>
+    [JsonPropertyName("colsDelta")]
+    public int? ColsDelta { get; set; }
+}
 
 /// <summary>G6 Softcore 经济与制造系统大修（子结构对齐源 config.json5）。</summary>
 public sealed class SoftcoreModuleConfig : ModuleConfig

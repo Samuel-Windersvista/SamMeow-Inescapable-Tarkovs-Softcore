@@ -119,6 +119,79 @@ public class BackpacksModuleTests
         Assert.Contains("backpacks", report.SkippedModuleIds);
     }
 
+    [Fact]
+    public void Override_AbsoluteAndDelta_AppliedInOrder()
+    {
+        const string id = "000000000000000000000001";
+        var table = TestTemplateTables.Create((id, TestItems.Backpack(6, 13, filters: [new GridFilter()])));
+        var config = new SoftcoreConfig();
+        config.Backpacks.Overrides[id] = new BackpackOverride { RowsDelta = 2, ColsDelta = 1 };
+
+        var report = new BackpacksModule(new RecordingLogger<BackpacksModule>()).Apply(Context(table, config));
+
+        var grid = table.Items[new MongoId(id)].Properties.Grids!.Single().Properties!;
+        Assert.Equal(7, grid.CellsH); // 6 + 1
+        Assert.Equal(15, grid.CellsV); // 13 + 2
+        Assert.Empty(grid.Filters!);
+        Assert.Equal(1, report.ChangedCount);
+    }
+
+    [Fact]
+    public void Override_AbsoluteValue_ThenDelta()
+    {
+        const string id = "000000000000000000000001";
+        var table = TestTemplateTables.Create((id, TestItems.Backpack(6, 13, filters: [new GridFilter()])));
+        var config = new SoftcoreConfig();
+        config.Backpacks.Overrides[id] = new BackpackOverride { CellsH = 3, CellsV = 4, RowsDelta = 2 };
+
+        new BackpacksModule(new RecordingLogger<BackpacksModule>()).Apply(Context(table, config));
+
+        var grid = table.Items[new MongoId(id)].Properties.Grids!.Single().Properties!;
+        Assert.Equal(3, grid.CellsH);
+        Assert.Equal(6, grid.CellsV); // 4 + 2
+    }
+
+    [Fact]
+    public void Override_StacksOnTableResult()
+    {
+        var table = TestTemplateTables.Create((SixSh118Id, TestItems.Backpack(6, 13, filters: [new GridFilter()])));
+        var config = new SoftcoreConfig();
+        config.Backpacks.Overrides[SixSh118Id] = new BackpackOverride { RowsDelta = 1, ColsDelta = 1 };
+
+        new BackpacksModule(new RecordingLogger<BackpacksModule>()).Apply(Context(table, config));
+
+        var grid = table.Items[new MongoId(SixSh118Id)].Properties.Grids!.Single().Properties!;
+        Assert.Equal(9, grid.CellsH); // 表 8 + 1
+        Assert.Equal(10, grid.CellsV); // 表 9 + 1
+    }
+
+    [Fact]
+    public void Override_DeltaClampsAtOne()
+    {
+        const string id = "000000000000000000000001";
+        var table = TestTemplateTables.Create((id, TestItems.Backpack(6, 13, filters: [new GridFilter()])));
+        var config = new SoftcoreConfig();
+        config.Backpacks.Overrides[id] = new BackpackOverride { RowsDelta = -100, ColsDelta = -100 };
+
+        new BackpacksModule(new RecordingLogger<BackpacksModule>()).Apply(Context(table, config));
+
+        var grid = table.Items[new MongoId(id)].Properties.Grids!.Single().Properties!;
+        Assert.Equal(1, grid.CellsH);
+        Assert.Equal(1, grid.CellsV);
+    }
+
+    [Fact]
+    public void Override_MissingId_Warns()
+    {
+        var table = TestTemplateTables.Create();
+        var config = new SoftcoreConfig();
+        config.Backpacks.Overrides["0000000000000000000000aa"] = new BackpackOverride { RowsDelta = 1 };
+
+        var report = new BackpacksModule(new RecordingLogger<BackpacksModule>()).Apply(Context(table, config));
+
+        Assert.Contains(report.Warnings, warning => warning.Contains("0000000000000000000000aa", StringComparison.Ordinal));
+    }
+
     private static ModContext Context(TemplateTable table, SoftcoreConfig? config = null) =>
         new(config ?? new SoftcoreConfig(), TestModTables.With(table));
 }

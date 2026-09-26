@@ -21,6 +21,9 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
 {
     public const string ConfigFileName = "config.json";
 
+    /// <summary>替代文件名（JSONC 显式后缀）：查找顺序 config.json → config.jsonc。</summary>
+    public const string AlternateConfigFileName = "config.jsonc";
+
     private const string EmbeddedResourceName = "InescapableTarkovsSoftcore.default-config.json";
 
     private static readonly JsonDocumentOptions DocumentOptions = new()
@@ -39,20 +42,29 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
     /// <summary>定位 mod 目录并加载配置（生产入口）。</summary>
     public ConfigLoadResult Load() => LoadFromDirectory(ResolveModDirectory());
 
-    /// <summary>从指定目录加载 <c>config.json</c>；文件缺失时从内嵌模板重建并告警。</summary>
+    /// <summary>
+    /// 从指定目录加载配置：先找 <c>config.json</c>，再找 <c>config.jsonc</c>；
+    /// 两者都缺 → 从内嵌模板重建 <c>config.json</c> 并告警。
+    /// </summary>
     public static ConfigLoadResult LoadFromDirectory(string modDirectory)
     {
         var warnings = new List<string>();
         var path = Path.Combine(modDirectory, ConfigFileName);
+        var alternatePath = Path.Combine(modDirectory, AlternateConfigFileName);
         string json;
 
         if (File.Exists(path))
         {
             json = File.ReadAllText(path);
         }
+        else if (File.Exists(alternatePath))
+        {
+            warnings.Add($"[ITS] 使用替代配置文件 {AlternateConfigFileName}：{alternatePath}");
+            json = File.ReadAllText(alternatePath);
+        }
         else
         {
-            warnings.Add($"[ITS] 未找到 {ConfigFileName}，已从内嵌默认模板重建：{path}");
+            warnings.Add($"[ITS] 未找到 {ConfigFileName} / {AlternateConfigFileName}，已从内嵌默认模板重建：{path}");
             json = ReadDefaultConfigJson();
 
             try
@@ -255,7 +267,10 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
         }
     }
 
-    /// <summary>校验字典型叶键（如 overrides）：值须为对象；内层值须符合字典值类型（整数型拒绝小数）。</summary>
+    /// <summary>
+    /// 校验字典型叶键（如 overrides）：值须为对象。值为数值型（int/double 等）时逐项校验数值
+    /// （整数型拒绝小数）；值为对象型（如 BackpackOverride）时逐项递归校验其子键。
+    /// </summary>
     private static void ValidateDictionaryLeaf(JsonObject parent, string key, string path, List<string> warnings, Type dictionaryType)
     {
         if (parent[key] is not JsonObject map)
@@ -268,6 +283,25 @@ public sealed class ConfigLoader(ModHelper modHelper, ISptLogger<ConfigLoader> l
         var valueType = dictionaryType.IsGenericType
             ? dictionaryType.GetGenericArguments()[1]
             : typeof(double);
+        var underlying = Nullable.GetUnderlyingType(valueType) ?? valueType;
+
+        if (underlying != typeof(string) && !IsNumeric(underlying))
+        {
+            // 对象型值：逐项按对象递归校验（未知子键 / 类型非法 → 移除并告警）。
+            foreach (var (entryKey, entryValue) in map.ToList())
+            {
+                if (entryValue is not JsonObject entryObject)
+                {
+                    warnings.Add($"[ITS] 配置键 \"{path}.{key}.{entryKey}\" 类型非法（应为对象），已忽略");
+                    map.Remove(entryKey);
+                    continue;
+                }
+
+                ValidateObject(entryObject, $"{path}.{key}.{entryKey}", warnings, underlying);
+            }
+
+            return;
+        }
 
         foreach (var (entryKey, entryValue) in map.ToList())
         {

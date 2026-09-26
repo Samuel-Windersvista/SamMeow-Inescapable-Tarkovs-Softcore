@@ -300,6 +300,37 @@ public class ConfigLoaderTests
         }
     }
 
+    [Fact]
+    public void LoadFromDirectory_UsesJsoncWhenJsonMissing()
+    {
+        var dir = NewTempDir();
+        File.WriteAllText(Path.Combine(dir, "config.jsonc"), """{ "general": { "enabled": false } }""");
+
+        var result = ConfigLoader.LoadFromDirectory(dir);
+
+        Assert.False(result.Config.General.Enabled);
+        Assert.Contains(result.Warnings, warning => warning.Contains("config.jsonc", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void LoadFromDirectory_PrefersJsonOverJsonc()
+    {
+        var dir = NewTempDir();
+        File.WriteAllText(Path.Combine(dir, "config.json"), """{ "general": { "enabled": true } }""");
+        File.WriteAllText(Path.Combine(dir, "config.jsonc"), """{ "general": { "enabled": false } }""");
+
+        var result = ConfigLoader.LoadFromDirectory(dir);
+
+        Assert.True(result.Config.General.Enabled);
+    }
+
+    private static string NewTempDir()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "its-config-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        return dir;
+    }
+
     private static IEnumerable<string> ExpectedKeyPaths(Type rootType)
     {
         foreach (var section in rootType.GetProperties())
