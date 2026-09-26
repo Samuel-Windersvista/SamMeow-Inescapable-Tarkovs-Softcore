@@ -10,30 +10,36 @@ public class AntigravModuleTests
 {
     private const string WhiteId = "5b3f16c486f7747c327f55f7";
     private const string Prestige2Id = "67614b6b47c71ea3d40256d7";
+    private const string Prestige3Id = "6841b2506c1fcc41ed0db319";
 
     [Fact]
-    public void Table_HasTwentyTwoArmbands_WithPinnedWeightTiers()
+    public void Table_HasThirtySevenArmbands_WithPinnedWeightTiers()
     {
         var armbands = FeatureTables.Armbands;
 
-        Assert.Equal(22, armbands.Count);
+        Assert.Equal(37, armbands.Count);
         Assert.Equal(-6.0, armbands.Single(entry => entry.Id == WhiteId).Weight);
         Assert.Equal(-25.0, armbands.Single(entry => entry.Id == Prestige2Id).Weight);
+        Assert.Equal(-25.0, armbands.Single(entry => entry.Id == Prestige3Id).Weight);
         Assert.Equal(5, armbands.Count(entry => entry.Weight == -6));
         Assert.Equal(3, armbands.Count(entry => entry.Weight == -8));
-        Assert.Equal(5, armbands.Count(entry => entry.Weight == -10));
-        Assert.Equal(7, armbands.Count(entry => entry.Weight == -15));
+        Assert.Equal(6, armbands.Count(entry => entry.Weight == -10));
+        Assert.Equal(17, armbands.Count(entry => entry.Weight == -15));
         Assert.Equal(1, armbands.Count(entry => entry.Weight == -20));
-        Assert.Equal(1, armbands.Count(entry => entry.Weight == -25));
+        Assert.Equal(5, armbands.Count(entry => entry.Weight == -25));
     }
 
     [Theory]
     [InlineData("5b3f16c486f7747c327f55f7", -6.0)]  // White
     [InlineData("619bdeb986e01e16f839a99e", -8.0)]  // RFARMY
     [InlineData("619bdd8886e01e16f839a99c", -10.0)] // BEAR
+    [InlineData("688b2e574172ca83e70cf868", -10.0)] // Purple (discord)
     [InlineData("60b0f988c4449e4cb624c1da", -15.0)] // Evasion
+    [InlineData("68f25be683ec644ebf046787", -15.0)] // Beta
+    [InlineData("68d41e65a706eba9a204ed27", -15.0)] // Survivor (story 01)
     [InlineData("67614b542eb91250020f2b86", -20.0)] // Prestige 1
     [InlineData("67614b6b47c71ea3d40256d7", -25.0)] // Prestige 2
+    [InlineData("68d65766916a108d7a023c98", -25.0)] // Prestige 6
     public void Table_AnchorsOneIdPerWeightTier(string id, double expectedWeight)
     {
         Assert.Equal(expectedWeight, FeatureTables.Armbands.Single(entry => entry.Id == id).Weight);
@@ -66,7 +72,7 @@ public class AntigravModuleTests
     }
 
     [Fact]
-    public void Apply_AllTwentyTwoArmbands_AreChangedAndMatchTable()
+    public void Apply_AllThirtySevenArmbands_AreChangedAndMatchTable()
     {
         var table = TestTemplateTables.Create(
             FeatureTables.Armbands.Select(entry => (entry.Id, TestItems.Armband(entry.Weight + 100, 1))).ToArray());
@@ -74,7 +80,7 @@ public class AntigravModuleTests
         var report = new AntigravModule(new RecordingLogger<AntigravModule>())
             .Apply(Context(table));
 
-        Assert.Equal(22, report.ChangedCount);
+        Assert.Equal(37, report.ChangedCount);
         Assert.Empty(report.Warnings);
         foreach (var entry in FeatureTables.Armbands)
         {
@@ -93,9 +99,9 @@ public class AntigravModuleTests
         var report = new AntigravModule(logger).Apply(Context(table));
 
         Assert.Equal(0, report.ChangedCount);
-        Assert.Equal(22, report.Warnings.Count);
+        Assert.Equal(37, report.Warnings.Count);
         Assert.Contains(report.Warnings, warning => warning.Contains(WhiteId, StringComparison.Ordinal));
-        Assert.Equal(22, logger.WarningMessages.Count);
+        Assert.Equal(37, logger.WarningMessages.Count);
     }
 
     [Fact]

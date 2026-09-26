@@ -980,13 +980,6 @@
             }
         },
         {
-            "name": "Vinyl record",
-            "_id": "e44b40d309fa123643258996",
-            "_props": {
-                "StackMaxSize": 3
-            }
-        },
-        {
             "name": "Virtex programmable processor",
             "_id": "5c05308086f7746b2101e90b",
             "_props": {
@@ -1124,6 +1117,76 @@
             "_id": "5d0377ce86f774186372f689",
             "_props": {
                 "StackMaxSize": 3
+            }
+        },
+        {
+            "name": "IBX Gigachad cryptographic processor",
+            "_id": "69bb4203f94327bc0f0230cd",
+            "_props": {
+                "StackMaxSize": 2
+            }
+        },
+        {
+            "name": "Advanced current converter",
+            "_id": "6389c85357baa773a825b356",
+            "_props": {
+                "StackMaxSize": 2
+            }
+        },
+        {
+            "name": "Memento Server RAM Module",
+            "_id": "69bb424e99f3fda8f107247d",
+            "_props": {
+                "StackMaxSize": 2
+            }
+        },
+        {
+            "name": "Ultralink satellite communication module",
+            "_id": "69bb41c03b5fb75517065960",
+            "_props": {
+                "StackMaxSize": 2
+            }
+        },
+        {
+            "name": "6-STEN-140-M military battery",
+            "_id": "5d03794386f77420415576f5",
+            "_props": {
+                "StackMaxSize": 2
+            }
+        },
+        {
+            "name": "Nooby Shield potassium iodide tablets",
+            "_id": "69bb43df99f3fda8f1072483",
+            "_props": {
+                "StackMaxSize": 3
+            }
+        },
+        {
+            "name": "Aceso Xpress semi-automatic biochemical analyzer",
+            "_id": "69bb435ff609db77390b0e25",
+            "_props": {
+                "StackMaxSize": 2
+            }
+        },
+        {
+            "name": "Echo Belli crate",
+            "_id": "69d39aacf1954acdb3083285",
+            "_props": {
+                "StackMaxSize": 2
+            }
+        },
+        {
+            "name": "Labrys research notes",
+            "_id": "679b992329acd1f2f60985a5",
+            "_props": {
+                "StackMaxSize": 2
+            }
+        },
+        {
+            "name": "Prapor's letter for the port checkpoint",
+            "_id": "68f213f8ea61d1803707cf7a",
+            "_props": {
+                "StackMaxSize": 2
             }
         }
     ]

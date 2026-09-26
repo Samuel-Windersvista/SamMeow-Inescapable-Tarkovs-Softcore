@@ -35,7 +35,7 @@ public class DataResourceTests
         var result = EmbeddedJsonResource<List<ArmbandEntry>>.Load(
             FeatureTables.ArmbandsResourceName, RelativePath, dir, warnings);
 
-        Assert.Equal(22, result.Count);
+        Assert.Equal(37, result.Count);
         Assert.Contains(warnings, warning => warning.Contains("数据文件缺失", StringComparison.Ordinal));
     }
 
@@ -49,7 +49,7 @@ public class DataResourceTests
         var result = EmbeddedJsonResource<List<ArmbandEntry>>.Load(
             FeatureTables.ArmbandsResourceName, RelativePath, dir, warnings);
 
-        Assert.Equal(22, result.Count);
+        Assert.Equal(37, result.Count);
         Assert.Contains(warnings, warning => warning.Contains("解析失败", StringComparison.Ordinal));
     }
 

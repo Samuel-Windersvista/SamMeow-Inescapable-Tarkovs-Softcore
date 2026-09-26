@@ -16,12 +16,12 @@ public class TrueItemsResourceTests
 
         Assert.True(tables.Barter.Active);
         Assert.Equal(1, tables.Barter.StackMult);
-        Assert.Equal(175, tables.Barter.List.Count);
+        Assert.Equal(184, tables.Barter.List.Count);
         Assert.Empty(tables.Barter.ParentList);
 
         Assert.True(tables.Clothing.Active);
         Assert.Equal(1, tables.Clothing.StackMult);
-        Assert.Equal(22, tables.Clothing.List.Count);
+        Assert.Equal(28, tables.Clothing.List.Count);
 
         Assert.True(tables.Keycards.Active);
         Assert.Equal(1, tables.Keycards.StackMult);
@@ -40,7 +40,28 @@ public class TrueItemsResourceTests
 
         Assert.True(tables.Provisions.Active);
         Assert.Equal(1, tables.Provisions.StackMult);
-        Assert.Equal(19, tables.Provisions.List.Count);
+        Assert.Equal(25, tables.Provisions.List.Count);
+    }
+
+    [Fact]
+    public void Load_R1d_AddedEntries_ArePresentWithPinnedValues()
+    {
+        var tables = TrueItemsResourceLoader.Load();
+
+        // barter：+10（184），移除失效 Vinyl record
+        Assert.Equal(2, ListValue(tables.Barter, "69bb4203f94327bc0f0230cd")); // IBX Gigachad processor
+        Assert.Equal(2, ListValue(tables.Barter, "5d03794386f77420415576f5")); // 6-STEN-140-M military battery
+        Assert.Equal(3, ListValue(tables.Barter, "69bb43df99f3fda8f1072483")); // Nooby Shield iodide
+        Assert.DoesNotContain(tables.Barter.List, entry => entry.Id == "e44b40d309fa123643258996");
+
+        // provisions：+6（25）
+        Assert.Equal(5, ListValue(tables.Provisions, "6a35322b81d315afe1018ef3")); // French bakery baguette
+        Assert.Equal(5, ListValue(tables.Provisions, "6a3557f841667bc4bb00fea4")); // Bottle of YMXC water
+        Assert.Equal(4, ListValue(tables.Provisions, "67586b7e49c2fa592e0d8ed9")); // Olivier salad box
+
+        // clothing：+6（28，堆叠 2）
+        Assert.Equal(2, ListValue(tables.Clothing, "6937f02dfd6488bb27024839")); // Domontovich ushanka hat
+        Assert.Equal(2, ListValue(tables.Clothing, "618aef6d0a5a59657e5f55ee")); // Jack Pyke boonie hat
     }
 
     [Fact]

@@ -110,11 +110,53 @@
             "_props": {
                 "StackMaxSize": 4
             }
-        },{
+        },        {
             "name": "Bottle of Pevko Light beer",
             "_id": "62a09f32621468534a797acb",
             "_props": {
                 "StackMaxSize": 2
+            }
+        },
+        {
+            "name": "Olivier salad box",
+            "_id": "67586b7e49c2fa592e0d8ed9",
+            "_props": {
+                "StackMaxSize": 4
+            }
+        },
+        {
+            "name": "French bakery baguette",
+            "_id": "6a35322b81d315afe1018ef3",
+            "_props": {
+                "StackMaxSize": 5
+            }
+        },
+        {
+            "name": "Bottle of YMXC water",
+            "_id": "6a3557f841667bc4bb00fea4",
+            "_props": {
+                "StackMaxSize": 5
+            }
+        },
+        {
+            "name": "Can of GigaBeef meat",
+            "_id": "6a3532423ec9d7082a05d430",
+            "_props": {
+                "StackMaxSize": 4
+            }
+        },
+        {
+            "name": "Salty Dog beef sausage",
+            "_id": "635a758bfefc88a93f021b8a",
+            "_props": {
+                "StackMaxSize": 4
+            }
+        },
+        {
+            "name": "Bottle of Norvinsky Yadreniy premium kvass (0.6L)",
+            "_id": "5e8f3423fd7471236e6e3b64",
+            "_props": {
+                "StackMaxSize": 4
             }
         }
     ]
