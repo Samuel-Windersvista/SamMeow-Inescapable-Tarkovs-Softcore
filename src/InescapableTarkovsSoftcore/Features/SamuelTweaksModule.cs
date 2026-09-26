@@ -9,12 +9,6 @@ namespace InescapableTarkovsSoftcore.Features;
 
 /// <summary>
 /// G1 Samuel's Tweaks：护甲弹挂冲突修复 / 可掠夺臂章与近战 / 扩展弹匣缩格。
-/// <para>
-/// 启动器背景（<c>customBackground</c>）是构建期静态件，运行时无操作——由
-/// <c>scripts/build.ps1</c> 把 <c>assets/launcher/bg.png</c> 拷到 overlay 的
-/// <c>SPT_Runtime/SPT_Data/images/launcher/bg.png</c>（SPT5 的 ImageRouteImporter 扫描该目录，
-/// 生成 <c>/files/launcher/bg</c> 路由）。
-/// </para>
 /// <para>执行顺序 = 200（D5：softcore=100 → samuelTweaks=200 → antigravArmbands=300 → ...）。</para>
 /// </summary>
 [Injectable(InjectionType.Singleton)]

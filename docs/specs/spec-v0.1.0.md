@@ -74,7 +74,7 @@
 
 **D6 配置设计**：单一 `config.json`（随包分发默认文件、中文注释；解析容忍注释与尾逗号）。结构：`general{enabled, debug}` + 每模块 `{enabled, ...参数}`。未知键 → 警告；缺键 → 内置默认；默认值完整性由测试保证。默认值 = 差异表最终态。不注册 SPT 服务端配置编辑器（v0.2 候选）。config 缺失时重建默认并告警。
 
-**D7 G1 要点**：护甲弹挂冲突修复（含 `RigLayoutName` 的弹挂 → `BlocksArmorVest=false`）；可掠夺（臂章父类 + 近战类目 → `Unlootable=false`、`UnlootableFromSide=[]`）；弹匣缩格（宽 1 且高 >2 且容量 10–50 → 高 2、ExtraSizeDown−1）；启动器背景（bg.png 静态替换，随 overlay 提供）。
+**D7 G1 要点**：护甲弹挂冲突修复（含 `RigLayoutName` 的弹挂 → `BlocksArmorVest=false`）；可掠夺（臂章父类 + 近战类目 → `Unlootable=false`、`UnlootableFromSide=[]`）；弹匣缩格（宽 1 且高 >2 且容量 10–50 → 高 2、ExtraSizeDown−1）。（启动器背景静态替换已于验收反馈 8 移除。）
 
 **D8 G2 要点**：六张数据表按 List/ParentList 语义写 `StackMaxSize = 条目值 × StackMult`，并设 `StackMinRandom=1`；medicals 仅对空医疗容器（MaxHpResource ≤ 0）生效；最终态 StackMult: barter/clothing/keycards/partsnmods/provisions = 1、medicals = 2；`partsnmods.Active=false`（配件堆叠保持关闭）；keycards = 1（不堆叠）。
 

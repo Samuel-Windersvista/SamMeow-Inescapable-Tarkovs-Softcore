@@ -14,5 +14,5 @@
 - **差异表**：基础 vs 沉浸感 vs 生存 的逐项数值对照；写入规格书供微调。
 - **目标实例**：MO2 便携实例 `E:\Game\EFT_Offline\Inescapable Tarkov`（profile: Default），游戏根 `E:\Game\EFT_Offline\SPT_5xx`（SPT 5.0.0，build 47242，EFT 1.1.5）。
 - **部署单元**：MO2 overlay 目录 `[5]核心-Inescapable-Tarkovs-Softcore-<版本>`。
-- **客户端件**：需要 BepInEx 6 客户端插件的部分；v1 仅保留启动器背景图（bg.png）。
+- **客户端件**：需要 BepInEx 6 客户端插件的部分；v1 无客户端件（启动器背景已于反馈 8 移除，客户端优化插件属延后项）。
 - **延后项**：PerformanceTweaks 客户端优化插件——源码在 toolkit 仓库 `mods\PerformanceTweaks`（net472 时代产物），需针对 EFT 1.1.5 客户端重新审查评估，不属 v1。

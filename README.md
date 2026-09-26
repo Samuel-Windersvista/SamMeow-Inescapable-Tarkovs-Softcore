@@ -36,7 +36,7 @@ SPT 5.0 服务端整合 mod。把 Life in Norvinsk v0.3.2 的六组功能 + 战�
 ```
 InescapableTarkovsSoftcore.sln
 config/default-config.json              受控默认配置模板（JSONC）
-data/                                   功能查找表（EmbeddedResource 源文件）
+data/                                   数据表（随包发货到 mod 目录 data/**，并内嵌为兜底）
   trueitems/                            G2 True Items 六张表
   antigravArmbands/armbands.json        G4 反重力臂章表（22 款）
   backpacks/backpacks.json              G5 背包扩容表（43 条）
@@ -49,7 +49,6 @@ src/InescapableTarkovsSoftcore/         主工程（net10.0，库，SPT 服务�
   Features/                             变换层接缝与编排器
     TrueItems/                          G2 True Items 查找表模型 / 加载器 / 应用器 / 模块
 tests/InescapableTarkovsSoftcore.Tests/ xUnit 测试工程
-assets/launcher/bg.png                  启动器背景静态件（随 overlay 部署）
 scripts/build.ps1                       构建 + overlay 组装脚本
 scripts/tools/                          数据再生成工具（gen-fleamarket.ps1 / gen-crafting.mjs / dump-spt-symbols.cs）
 build/overlay/                          构建产物（git 忽略）
@@ -77,21 +76,21 @@ powershell -File scripts/build.ps1     # 组装 overlay 产物（拷贝配置模
 
 ### 产物布局
 
-`scripts/build.ps1` 幂等产出（每次运行重建 `build/overlay/`）：
+`scripts/build.ps1` 幂等产出（不整树重建，采用升级安全的拷贝策略）：
 
 ```
 build/overlay/
 └─ SPT_Runtime/
-   ├─ SPT_Data/
-   │  └─ images/
-   │     └─ launcher/
-   │        └─ bg.png    # G1 启动器背景（assets/launcher/bg.png 的拷贝；customBackground 关闭时省略）
    └─ user/
       └─ mods/
          └─ com.sammeow.inescapable-softcore/
-            ├─ InescapableTarkovsSoftcore.dll
-            ├─ config.json      # config/default-config.json 的逐字节拷贝
-            └─ Resources/       # 非嵌入式数据资产占位（G2 查找表已内嵌进 DLL，不在此）
+            ├─ InescapableTarkovsSoftcore.dll   # 始终覆盖
+            ├─ config.json                      # copy-if-missing（保留玩家编辑）
+            └─ data/**                          # copy-if-missing，逐文件（保留玩家编辑）
+               ├─ trueitems/*.json
+               ├─ antigravArmbands/armbands.json
+               ├─ backpacks/backpacks.json
+               └─ softcore/{scavcase,fleamarket,crafting-*.json}
 ```
 
 ### 部署映射
@@ -100,19 +99,15 @@ build/overlay/
 |---|---|
 | `build/overlay/` | 游戏根 `E:\Game\EFT_Offline\SPT_5xx` |
 | `build/overlay/SPT_Runtime/user/mods/com.sammeow.inescapable-softcore/` | `SPT_Runtime\user\mods\com.sammeow.inescapable-softcore\` |
-| `build/overlay/SPT_Runtime/SPT_Data/images/launcher/bg.png` | `SPT_Runtime\SPT_Data\images\launcher\bg.png` |
 
 部署经 MO2 overlay 目录 `[5]核心-Inescapable-Tarkovs-Softcore-<版本>` 向目标实例投影；不直接写入游戏目录。
 
-#### 启动器背景路径核对（T07）
+#### 升级更新流程（保留玩家 config 与 data）
 
-- SPT5 实例中启动器背景的真实路径为 `E:\Game\EFT_Offline\SPT_5xx\SPT_Runtime\SPT_Data\images\launcher\bg.png`（同目录另有 `side_bear.png` / `side_scav.png` / `side_usec.png` 启动器 UI 资源）。
-- 服务端 `SPTarkov.Server.Core.Utils.ImageRouteImporter`（`IOnLoad`）扫描 `SPT_Data/images/` 目录并按相对路径生成 `/files/<相对路径>` 路由，故该文件即 `/files/launcher/bg`——与旧 mod `ImageRouter.addRoute("/files/launcher/bg", …)` 的语义一致。
-- 因此本工单采用**静态件覆盖**：`scripts/build.ps1` 在 `samuelTweaks.customBackground`（且 `samuelTweaks.enabled`）为真时，把 `assets/launcher/bg.png` 拷入 overlay 的上述路径；不注册服务端路由、不引入任何客户端 DLL（PerformanceTweaks 不在本工单范围）。
-- 背景改动需重启 SPT 服务器（以及清理启动器缓存）后可见。
-- 边界（H）：`scripts/build.ps1` 的 `Test-CustomBackgroundEnabled` 用朴素 JSONC 解析（剥离 `//` 行/内联注释与尾随逗号）读取模板；
-  解析失败时 **fail-closed**（告警并跳过背景，不再默认部署）。受朴素解析局限，配置值内不得包含 `//`（当前无此情形），
-  这是受控模板文件的已知边界而非面向任意 JSON 的解析器。
+1. `scripts/build.ps1` 只覆盖 DLL，并在目标缺失时补 `config.json` / `data/**`（已存在则不覆盖）。
+2. 若玩家改动过 `config.json` 或 `data/**`：升级后这些文件保持原样；如需采用新版默认值，手动删除对应文件后重跑 build.ps1（或从 `config/default-config.json` / 仓库 `data/` 手动取新值合并）。
+3. 部署到 MO2 时以「更新现有 mod 目录」方式同步；不要先删除 mod 目录（否则玩家配置/数据一并丢失）。
+4. 重启 SPT 服务器生效。
 
 ### 发行归档
 
@@ -123,13 +118,20 @@ build/overlay/
 ### 文件位置
 
 - 模板（仓库内受控源）：`config/default-config.json`
-- 运行时实例（随 overlay 分发）：`SPT_Runtime\user\mods\com.sammeow.inescapable-softcore\config.json`（`scripts/build.ps1` 从模板拷贝）
+- 运行时实例（随 overlay 分发）：`SPT_Runtime\user\mods\com.sammeow.inescapable-softcore\config.json`（`scripts/build.ps1` 首次部署拷贝，之后不覆盖）
 
-若运行时缺失 `config.json`，mod 会从内嵌默认模板重建该文件并输出告警（不崩溃）。
+查找顺序：`config.json` → `config.jsonc`（替代文件名）。两者都不存在时，mod 会从内嵌默认模板重建 `config.json` 并输出告警（不崩溃）。
 
 ### 格式与容错
 
-- 支持 `//` 行注释与尾随逗号（JSONC）。
+- 文件名：`config.json`（默认）或 `config.jsonc`（显式 JSONC 后缀）；两者同时存在时以 `config.json` 优先。
+- 支持 `//` 行注释与尾随逗号（JSONC）。示例：
+  ```jsonc
+  {
+    // 总开关
+    "general": { "enabled": true, },
+  }
+  ```
 - 未知键：输出告警并忽略该键。
 - 缺键：使用内置默认值。
 - 值类型非法（如 `enabled` 写成字符串）：输出告警并回落默认值。
@@ -152,8 +154,7 @@ build/overlay/
       "enabled": true,
       "minCapacity": 10,                            // 容量下界（含）
       "maxCapacity": 50                             // 容量上界（含）
-    },
-    "customBackground": true                        // 构建期静态件（重启 + 重新打包生效）
+    }
   },
   "trueItems": {                                   // G2
     "enabled": true,
@@ -165,7 +166,10 @@ build/overlay/
     "stackSize": 5,                                  // 全部臂章堆叠上限
     "overrides": {}                                  // 单品覆盖：臂章 id → 重量（最后应用）
   },
-  "backpacks": { "enabled": true },                 // G5
+  "backpacks": {                                    // G5
+    "enabled": true,
+    "overrides": {}                                 // 逐背包覆盖：id → { cellsH/cellsV 绝对值, colsDelta/rowsDelta 增量 }
+  },                                                // 例：{ "5df8a4d786f77412672a1e3b": { "rowsDelta": 2, "colsDelta": 1 } }（在原基础上加 2 行 1 列）
   "softcore": {                                     // G6（T08 起子结构对齐源 config.json5）
     "enabled": true,
     "secureContainersOptions": {                    // 安全容器：2×2 腰包起步 → Kappa
@@ -297,8 +301,8 @@ build/overlay/
 
 ### G2 True Items 查找表
 
-`trueItems` 组的数值来自源 mod（IMM 覆盖层）的六张查找表，已作为内嵌资源随 DLL 分发，
-运行时无需外部文件，也不投影到 overlay：
+`trueItems` 组的数值来自源 mod（IMM 覆盖层）的六张查找表，随包发货到 mod 目录 `data/trueitems/`
+（玩家可编辑）并内嵌于 DLL 作为兜底：磁盘优先、缺失或解析失败告警并回落（不崩溃）。
 
 | 资源 | 条目 | 语义 |
 |---|---|---|
@@ -313,12 +317,39 @@ build/overlay/
 表 `Active=false` 时该文件零变更。`overrides` 在所有查找表之后应用：key 先按物品 `_id` 精确匹配，
 匹配不到再按父类 `_parent` 批量匹配。
 
-G1 语义：
+- **G1 语义**：
+  - `armorConflictFix`：含 `_props.RigLayoutName` 的弹挂甲 → `_props.BlocksArmorVest=false`（弹挂与护甲不再互斥）。
+  - `lootableItems.armband` / `meleeWeapons`：对应父类物品 → `Unlootable=false` 且 `UnlootableFromSide=[]`。
+  - `magazineResize`：弹匣（父类 `5448bc234bdc2d3c308b4569`）宽 1、高 >2、容量在 `[minCapacity, maxCapacity]` 时 → 高置 2、`ExtraSizeDown` 减 1（不跌破 0）。
 
-- `armorConflictFix`：含 `_props.RigLayoutName` 的弹挂甲 → `_props.BlocksArmorVest=false`（弹挂与护甲不再互斥）。
-- `lootableItems.armband` / `meleeWeapons`：对应父类物品 → `Unlootable=false` 且 `UnlootableFromSide=[]`。
-- `magazineResize`：弹匣（父类 `5448bc234bdc2d3c308b4569`）宽 1、高 >2、容量在 `[minCapacity, maxCapacity]` 时 → 高置 2、`ExtraSizeDown` 减 1（不跌破 0）。
-- `customBackground`：仅构建期生效，控制是否把 `assets/launcher/bg.png` 拷入 overlay；运行时无操作。
+## 数据文件（玩家可编辑）
+
+### 位置
+
+- 运行时：`SPT_Runtime\user\mods\com.sammeow.inescapable-softcore\data\<相对路径>`（如 `data\softcore\fleamarket.json`）
+- 随包源：仓库 `data/**`（`scripts/build.ps1` copy-if-missing 拷贝）
+
+### 加载与容错
+
+- **磁盘优先、内嵌兜底**：先读 mod 目录 `data/<相对路径>`；文件缺失或解析失败 → 输出告警并回落到 DLL 内嵌资源（不崩溃）。
+- 数据文件同样支持 JSONC（`//` 注释、尾随逗号）。
+- 改动后需重启 SPT 服务器生效；升级不会覆盖玩家已改动的数据文件。
+
+### 可改内容示例（制造配方）
+
+在 `data\softcore\crafting-recipes.json` 的 `additionalRecipes` 数组中增删条目（每条为一条 `HideoutProduction`）：
+
+```jsonc
+{
+  "additionalRecipes": [
+    // 在末尾追加一条（示例：自己造的配方）
+    // 需保证 "_id" 与 "endProduct" 为 24 位 hex；重复 endProduct 会被告警并去重
+    { "_id": "63da4dbee8fa73e225000099", "areaType": 7, "count": 1, "productionTime": 60, "endProduct": "<24-hex 物品 id>", "requirements": [] }
+  ]
+}
+```
+
+`data\softcore\crafting-rebalance.json` 的 `recipeAdjustments[].ops` 支持 `count` / `setAllCounts` / `setCount` / `replaceTemplate` / `setAreaLevel` / `replaceRequirements` / `pushRequirement`（语义见 `CraftingResourceLoader.cs`）。其他数据表（`trueitems/*`、`backpacks/backpacks.json`、`antigravArmbands/armbands.json`、`softcore/{scavcase,fleamarket}.json`）亦可按同结构编辑；出处与再生成见 `data/softcore/MANIFEST.md` 与 `scripts/tools/`。
 
 ## 状态
 

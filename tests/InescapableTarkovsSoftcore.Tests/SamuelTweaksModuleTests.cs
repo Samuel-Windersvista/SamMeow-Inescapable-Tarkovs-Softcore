@@ -248,28 +248,6 @@ public class SamuelTweaksModuleTests
         Assert.Equal(SPTarkov.DI.Annotations.InjectionType.Singleton, injectable.InjectionType);
     }
 
-    // ---------------------------------------------------------------- 启动器背景静态件
-
-    [Fact]
-    public void LauncherBackgroundAsset_ExistsInRepository()
-    {
-        var path = Path.Combine(RepoRoot(), "assets", "launcher", "bg.png");
-
-        Assert.True(File.Exists(path), $"缺少启动器背景资产：{path}");
-        var signature = File.ReadAllBytes(path).Take(8).ToArray();
-        Assert.Equal(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }, signature);
-    }
-
-    [Fact]
-    public void BuildScript_CopiesLauncherBackground_UnderCustomBackgroundSemantics()
-    {
-        var script = File.ReadAllText(Path.Combine(RepoRoot(), "scripts", "build.ps1"));
-
-        Assert.Contains("customBackground", script, StringComparison.Ordinal);
-        Assert.Contains(@"assets\launcher\bg.png", script, StringComparison.Ordinal);
-        Assert.Contains(@"SPT_Data\images\launcher", script, StringComparison.Ordinal);
-    }
-
     // ---------------------------------------------------------------- 辅助
 
     private static ModuleReport Apply(SamuelTweaksConfig section, params TemplateItem[] items)
