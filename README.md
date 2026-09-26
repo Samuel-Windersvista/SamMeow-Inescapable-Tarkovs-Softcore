@@ -37,9 +37,9 @@ SPT 5.0 服务端整合 mod。把 Life in Norvinsk v0.3.2 的六组功能 + 战�
 InescapableTarkovsSoftcore.sln
 config/default-config.json              受控默认配置模板（JSONC）
 data/                                   数据表（随包发货到 mod 目录 data/**，并内嵌为兜底）
-  trueitems/                            G2 True Items 六张表
-  antigravArmbands/armbands.json        G4 反重力臂章表（22 款）
-  backpacks/backpacks.json              G5 背包扩容表（43 条）
+  trueitems/                            G2 True Items 六张表（见 data/MANIFEST.md）
+  antigravArmbands/armbands.json        G4 反重力臂章表（37 款）
+  backpacks/backpacks.json              G5 背包扩容表（38 条）
   softcore/scavcase.json                G6-B ScavCase 数据表（配方/区间/黑名单）
   softcore/fleamarket.json              G6-C 跳蚤市场数据表（白/黑名单等；见 softcore/MANIFEST.md）
   softcore/crafting-rebalance.json      G6-D 配方重平衡表（47 条 ops；源 productionAdjustments.ts）
@@ -147,8 +147,8 @@ build/overlay/
     "enabled": true,                                // 组开关；false 时整组跳过（零变更）
     "armorConflictFix": true,                       // 护甲弹挂冲突修复
     "lootableItems": {                              // 可掠夺开关（可分别控制）
-      "armband": true,                              // 臂章（父类 5447e1d04bdc2dff2f8b4567）
-      "meleeWeapons": true                          // 近战武器（类目 5b3f15d486f77432d0509248）
+      "armband": true,                              // 臂章（SPT5 父类 ArmBand = 5b3f15d486f77432d0509248）
+      "meleeWeapons": true                          // 近战武器（SPT5 类目 Knife = 5447e1d04bdc2dff2f8b4567）
     },
     "magazineResize": {                             // 扩展弹匣缩格
       "enabled": true,
@@ -306,12 +306,12 @@ build/overlay/
 
 | 资源 | 条目 | 语义 |
 |---|---|---|
-| barter | List 175 | 杂物/以物易物物品堆叠 |
-| clothing | List 22 | 衣物堆叠 |
+| barter | List 184 | 杂物/以物易物物品堆叠 |
+| clothing | List 28 | 衣物堆叠 |
 | keycards | ParentList 1 | 门卡父类堆叠 = 1（不堆叠） |
 | medicals | List 43，StackMult 2 | 仅对空医疗容器生效；注射器实得 8 |
 | partsnmods | List 104 + ParentList 10 | 源 IMM 层 `Active=false`，不生效 |
-| provisions | List 19 | 食品/饮料堆叠 |
+| provisions | List 25 | 食品/饮料堆叠 |
 
 应用规则：`StackMaxSize = 条目值 × StackMult`，并置 `StackMinRandom = 1`；未命中 `_id` 输出告警并跳过；
 表 `Active=false` 时该文件零变更。`overrides` 在所有查找表之后应用：key 先按物品 `_id` 精确匹配，

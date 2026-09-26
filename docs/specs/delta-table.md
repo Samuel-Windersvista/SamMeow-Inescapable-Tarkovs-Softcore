@@ -38,6 +38,8 @@
 
 **最终态**：22 款，-6 ~ -25 kg（色阶分级），堆叠 5。（BASE：5 款 / -20 ~ -100 / 堆叠 10。）
 
+> **R1-D 扩表**：SPT 5.0 家族共 37 款（新增 15 款），已扩至 **37 款**（全 stack 5）；新增档位、Purple 存疑与依据见 §7.1。
+
 ---
 
 ## 2. 更大的背包（BetterBackpacks）
@@ -120,6 +122,8 @@
 
 **最终态**：IMM 版 43 条 —— 主流大背包上调（6Sh118 8×9、TriZip 7×8、Blackjack 7×9 等），**全部清空容器过滤**；MR NICE COMM 3（6×12→6×7）、Partisan（6×8→6×5）等被改为更保守尺寸。
 
+> **R1-D 修表**：43 → **38 条**（删 9 条 5.x 失效 id、新增 4 条 SPT 5.0 背包、跳过 MR Terraplane）见 §7.2。
+
 ---
 
 ## 3. True Items Redux（物品真实堆叠）
@@ -151,6 +155,8 @@ IMM `StackMult: 2`、43 条：保留 20 个注射器；删 Morphine + 全部 10 
 `Emergency Water Ration 3→4`；删 `Iskra ration pack`、`MRE ration pack`；新增 8：Tarker dried meat(5)、instant noodles(5)、RatCola(4)、Hot Rod(4)、TarCola(4)、Max Energy(4)、Ice Green tea(4)、Pevko Light(2)。
 
 **最终态**：食品/杂物/药品堆叠被大幅压低并精细化（多数 2–5）；注射器实得堆叠 = 8（条目值 ×2）；**配件堆叠关闭**（partsnmods `Active:false`）；衣物、Keycard 不变。
+
+> **R1-D 扩表**：barter 175 → **184**（删 1 失效 + 增 10）、provisions 19 → **25**（+6）、clothing 22 → **28**（+6）；medicals 维持 43（22 条占位按 O1）。逐项 id/值见 §7.3。
 
 ---
 
@@ -277,3 +283,55 @@ IMM `StackMult: 2`、43 条：保留 20 个注射器；删 Morphine + 全部 10 
 2. 旧包 5/6 目标无编译 `.js`（仅 Antigrav 有）；运行时行为以源码为准。
 3. True Items IMM 自定义 stim `_id` 为占位字符串（见 3b 待核）。
 4. Softcore SURV 保险 Prapor `insuranceCostPercentage=80`（BASE 25）数值存疑；按最终态保留，若属笔误在规格阶段修正。
+
+---
+
+## 7. R1-D 数据与容器修复批（T13 后扩展）
+
+> 依据：R1-A 覆盖审计（对照 SPT 5.0 `items.json` 5848 条）与 R1-B 容器诊断；数据表已随包发货（磁盘优先、内嵌兜底）。逐项来源与复现见 `data/MANIFEST.md`。
+
+### 7.1 袖章扩表（22 → 37，全 stack 5）
+
+审计口径更正：任务给的父类 `5447e1d04bdc2dff2f8b4567` 在 5.0 实为 `Knife`；臂章真实父类 = `5b3f15d486f77432d0509248`（`ArmBand`），家族共 37 条。
+
+| 档位 | 条数 | 新增明细 |
+|---|---|---|
+| -6 | 5 | — |
+| -8 | 3 | — |
+| -10 | 6 | + Purple(discord) `688b2e574172ca83e70cf868`（**存疑档**：单价 2 万、单色促销，取中档） |
+| -15 | 17 | + Beta `68f25be6…`（同 Alpha 容器档）；+ 剧情/成就组 9 条：Survivor `68d41e65…` / To Fall in the Darkness `68d41f01…` / Lighthouse `68d41fb0…` / For Humanity `68d41fde…` / HEAD,EYES `68f8ccb1…` / LOOT Prayer `68f8ccbc…` / Release `68f25b77…` / SBEU KOMAR `68f8ccf0…` / Forged In Beta `68fb9480…` |
+| -20 | 1 | — |
+| -25 | 5 | + Prestige 3/4/5/6 `6841b250…` / `6841b346…` / `6841b3ab…` / `68d65766…`（延续 P1 -20 / P2 -25 链，封顶 -25） |
+
+### 7.2 背包修表（43 → 38）
+
+- **删 9 条 5.x 失效 id**（`items.json` 中已不存在）：`668bc5cd…`、`6673b1ac…`、`672e2e75…`×6、`6621b28d…`。
+- **新增 4 条**（现状 H×V → 目标 H×V，依据同价位已覆盖项）：TT Modular Pack 45 Plus `68947a8c…` 5×8→**7×9**；MR 2 Day Assault Pack `68947ab5…` 5×6→**6×7**；MR NICE Frame Load Sling `68947ad3…` 5×7→**5×6**；Tehinkom RK-PT-25 `656ddcf0…` 1×2→**4×3**（**存疑**）。
+- **跳过**：MR Terraplane `56e294cdd2720b603a8b4575`（网格 6×50 疑脏数据），见 `data/MANIFEST.md`。
+
+### 7.3 True Items 扩表
+
+- **barter 175 → 184**：删失效 `e44b40d309fa123643258996`（Vinyl record）；新增 10（值 2–3）：IBX Gigachad processor `69bb4203…`(2)、Advanced current converter `6389c853…`(2)、Memento RAM `69bb424e…`(2)、Ultralink module `69bb41c0…`(2)、6-STEN-140-M battery `5d037943…`(2)、Nooby Shield iodide `69bb43df…`(3)、Aceso Xpress analyzer `69bb435f…`(2)、Echo Belli crate `69d39aac…`(2)、Labrys notes `679b9923…`(2)、Prapor's letter `68f213f8…`(2)。
+- **provisions 19 → 25**（+6，值 3–5）：Olivier salad box `67586b7e…`(4)、French bakery baguette `6a35322b…`(5)、YMXC water `6a3557f8…`(5)、GigaBeef meat `6a353242…`(4)、Salty Dog sausage `635a758b…`(4)、Norvinsky kvass `5e8f3423…`(4)。
+- **clothing 22 → 28**（+6，堆叠 2）：Domontovich ushanka `6937f02d…`、Big Pipe's bandana `628e4dd1…`、Zryachiy's balaclava `63627026…`、Kinda cowboy hat `5aa2b9ed…`、Door Kicker boonie `5d961415…`、Jack Pyke boonie `618aef6d…`。
+- **medicals 维持 43**：22 条自定义 stim 占位 `_id` 按 O1「匹配不到 = 不生效」，不做修正。
+
+### 7.4 安全容器变体修复（反馈 4）
+
+根因：只改基础模板，profile 实际装载的变体未处理（如 Unheard 起步 `Gamma_tue`、SPT Developer 起步 `Kappa Desecrated`）。改法：基础 6 条 + 按父类 `5448bf274bdc2dfc2f8b456a` 枚举家族（15 子项）+ 变体映射（未知变体 → 告警不崩）。
+
+| 变体 id | 名称 | 目标（cellsV×cellsH） | 备注 |
+|---|---|---|---|
+| 665ee77ccf2d642e98220bca | Gamma (tue) | 4×5 | Unheard 起步 |
+| 676008db84e242067d0dc4c9 | Kappa (Desecrated) | 5×5 | SPT Developer 起步 |
+| 68f8e04eae031982b00e7aaf | Gamma (damaged) | 4×5 | — |
+| 68f117b8121d878a2303eee0 | Gamma (Loui Peeton) | 4×5 | — |
+| 68d55968ca9935b3f10607a9 | Fanny pack (Loui Peeton) | 2×4 | 腰包档 |
+| 64f6f4c5911bcdfe8b03b0dc | Tournament secured container | 5×5 | Kappa 档 |
+
+**显式跳过**（记录原因）：Boss container `5c0a7945…`（4×90 异常）、Developer container `5c0a5a59…`（10×60 异常）、Theta/Tetta `664a55d8…`（赛事档）。
+**progressive 起步**：`Templates.Profiles` 的 SecuredContainer 统一回写为基础腰包 `5732ee6a`；变体腰包（`68d55968`）纳入「腰包档」不再回写。
+
+### 7.5 SamuelTweaks 父类 ID 错标修正
+
+源数据 `LootTweak.ts:9-10` 把臂章/近战父类错标对调 → `SamuelTweaksModule` 按 SPT5 实际语义纠正：`ArmbandParentId = 5b3f15d486f77432d0509248`（ArmBand）、`MeleeWeaponParentId = 5447e1d04bdc2dff2f8b4567`（Knife）。默认双开并集行为不变，单开关语义与日志计数修正。
