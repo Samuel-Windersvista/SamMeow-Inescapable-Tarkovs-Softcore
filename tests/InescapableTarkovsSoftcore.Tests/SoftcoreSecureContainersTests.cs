@@ -88,6 +88,57 @@ public class SoftcoreSecureContainersTests
     }
 
     [Fact]
+    public void BiggerContainers_ApplyVariantSizes_TueGammaAndCulticKappa()
+    {
+        // R1-D 反馈 4：profile 实况装载变体（Unheard=Gamma_tue、SPT Developer=Kappa Desecrated）。
+        var templates = SoftcoreTestData.NewTemplates();
+        var tueGamma = Variant(templates, "665ee77ccf2d642e98220bca", 3, 3);
+        var culticKappa = Variant(templates, "676008db84e242067d0dc4c9", 3, 4);
+        var beltbag = Variant(templates, "68d55968ca9935b3f10607a9", 3, 2);
+        var context = SoftcoreTestData.NewContext(
+            templates, SoftcoreTestData.NewHideout(), SoftcoreTestData.NewTraders(), SoftcoreTestData.NewHideoutConfig());
+
+        new SecureContainersChanger().Apply(context, new SoftcoreChangeLog());
+
+        SoftcoreTestData.AssertSize(templates, (string)tueGamma.Id, cellsV: 4, cellsH: 5);
+        SoftcoreTestData.AssertSize(templates, (string)culticKappa.Id, cellsV: 5, cellsH: 5);
+        SoftcoreTestData.AssertSize(templates, (string)beltbag.Id, cellsV: 2, cellsH: 4);
+    }
+
+    [Fact]
+    public void BiggerContainers_EnumeratesFamily_SkipsKnownAbnormal_AndWarnsUnknown()
+    {
+        var templates = SoftcoreTestData.NewTemplates();
+        var boss = Variant(templates, "5c0a794586f77461c458f892", 4, 90);
+        var unknown = Variant(templates, "0000000000000000000000c1", 2, 2);
+        var context = SoftcoreTestData.NewContext(
+            templates, SoftcoreTestData.NewHideout(), SoftcoreTestData.NewTraders(), SoftcoreTestData.NewHideoutConfig());
+        var log = new SoftcoreChangeLog { Changer = new SecureContainersChanger().Name };
+
+        new SecureContainersChanger().Apply(context, log);
+
+        // 显式跳过：保留异常尺寸并记录原因。
+        SoftcoreTestData.AssertSize(templates, (string)boss.Id, cellsV: 90, cellsH: 4);
+        Assert.Contains(log.Warnings, w => w.Contains("5c0a794586f77461c458f892", StringComparison.Ordinal)
+                                           && w.Contains("显式跳过", StringComparison.Ordinal));
+        // 未知变体：告警不崩（保留原尺寸）。
+        SoftcoreTestData.AssertSize(templates, (string)unknown.Id, cellsV: 2, cellsH: 2);
+        Assert.Contains(log.Warnings, w => w.Contains("未映射变体", StringComparison.Ordinal));
+    }
+
+    private static SPTarkov.Server.Core.Models.Eft.Common.Tables.TemplateItem Variant(
+        SPTarkov.Server.Core.Models.Spt.Tables.TemplateTable templates,
+        string id,
+        int cellsH,
+        int cellsV)
+    {
+        var item = SoftcoreTestData.NewContainer(id, cellsH, cellsV);
+        item.Parent = SecureContainersChanger.SecuredContainerParentId;
+        templates.Items[item.Id] = item;
+        return item;
+    }
+
+    [Fact]
     public void Disabled_ProducesZeroChanges()
     {
         var templates = SoftcoreTestData.NewTemplates();
