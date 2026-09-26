@@ -379,3 +379,17 @@ build/overlay/
 
 设计访谈（grill-with-docs）已收敛；规格书与工单进行中。版本自 `0.1.0` 起步。
 
+## 参考源（工作基准）
+
+本项目的实现、审计与修复以以下来源为准（优先级从高到低；路径为本机示例）：
+
+1. **SPT 5.0 服务端源码**：`E:\云文件\GitHub\SamMeow_SP-Tushonka_5xx_source_code` —— API / 表结构 / 生命周期语义参考。
+2. **SPT5 运行时数据库**：`E:\Game\EFT_Offline\SPT_5xx\SPT_Runtime\SPT_Data\database\templates\items.json` 等 —— 物品 id / 字段 / 数值的**唯一数据真值**；任何物品清单必须对照它全扫（失效 + 新增）。
+3. **运行时程序集**：`E:\Game\EFT_Offline\SPT_5xx\SPT_Runtime\*.dll` —— 编译引用与反射核对的真值（优先于源码快照；快照存在修饰符/可空性差异）。
+4. **知识库笔记**：`knowledge/spt-kb/curated/api-notes-5.0/`（toolkit 仓库）—— 5.0 源码实读笔记（config / database / DI / 路由 / 存档 / mod 加载）。
+5. **反编译参考**：3.11 版 `Assembly-CSharp`（历史行为对照，如排序/堆叠逻辑）；`SPT_5xx\EscapeFromTarkov_Data\il2cpp_data`（1.1.5 元数据；深挖客户端行为时经 Il2CppDumper）。
+6. **运行日志位置**：经 MO2 运行时在实例 `overwrite\SPT_Runtime\user\logs\`（VFS 重定向）；不经 MO2 直跑时在游戏根 `SPT_Runtime\user\logs\`。
+
+> 规则：物品清单 / 数值一律以 SPT5 数据库为准；行为语义以**实际执行文件**（代码 / DLL）为准，注释与源码快照仅供参考（已多次证实注释漂移）。
+> 开发回望与教训：「`docs/retro-2026-09-26.md`」。
+
