@@ -10,7 +10,8 @@ public static class ScavCaseResourceLoader
 {
     internal const string ResourceName = "InescapableTarkovsSoftcore.softcore.scavcase.json";
 
-    public static ScavCaseTables Load() => EmbeddedJsonResource<ScavCaseTables>.Load(ResourceName);
+    public static ScavCaseTables Load(List<string>? warnings = null) =>
+        EmbeddedJsonResource<ScavCaseTables>.Load(ResourceName, "data/softcore/scavcase.json", warnings: warnings);
 }
 
 /// <summary>ScavCase 数据表根。</summary>

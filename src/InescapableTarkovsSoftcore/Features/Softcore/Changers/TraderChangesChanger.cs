@@ -136,7 +136,7 @@ public sealed class TraderChangesChanger : ISoftcoreChanger
             return;
         }
 
-        var data = FleaMarketResourceLoader.Load();
+        var data = FleaMarketResourceLoader.Load(log.Warnings);
         var fenceWhitelist = data.PacifistFenceItemBaseWhitelist.ToHashSet(StringComparer.Ordinal);
         var fenceBlacklist = data.ItemBaseClasses.Where(baseClass => !fenceWhitelist.Contains(baseClass)).ToHashSet(StringComparer.Ordinal);
 

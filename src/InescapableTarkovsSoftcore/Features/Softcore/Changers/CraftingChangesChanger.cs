@@ -26,7 +26,11 @@ public sealed class CraftingChangesChanger : ISoftcoreChanger
     public string Name => "craftingChanges";
 
     public void Apply(SoftcoreContext context, SoftcoreChangeLog log) =>
-        Apply(context, log, CraftingResourceLoader.LoadRebalance, CraftingResourceLoader.LoadRecipes);
+        Apply(
+            context,
+            log,
+            () => CraftingResourceLoader.LoadRebalance(log.Warnings),
+            () => CraftingResourceLoader.LoadRecipes(log.Warnings));
 
     /// <summary>
     /// 测试接缝：注入外置数据表（生产路径经 <see cref="CraftingResourceLoader"/> 读内嵌资源）。

@@ -27,7 +27,7 @@ public sealed class AntigravModule(ISptLogger<AntigravModule> logger) : FeatureM
         var overriddenIds = new HashSet<string>(StringComparer.Ordinal);
         var changed = 0;
 
-        foreach (var entry in FeatureTables.Armbands)
+        foreach (var entry in FeatureTables.LoadArmbands(warnings))
         {
             var weight = entry.Weight;
             if (overrides.TryGetValue(entry.Id, out var overrideWeight))

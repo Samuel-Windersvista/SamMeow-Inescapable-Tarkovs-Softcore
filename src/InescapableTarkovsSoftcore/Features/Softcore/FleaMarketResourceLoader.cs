@@ -10,7 +10,8 @@ public static class FleaMarketResourceLoader
 {
     internal const string ResourceName = "InescapableTarkovsSoftcore.softcore.fleamarket.json";
 
-    public static FleaMarketTables Load() => EmbeddedJsonResource<FleaMarketTables>.Load(ResourceName);
+    public static FleaMarketTables Load(List<string>? warnings = null) =>
+        EmbeddedJsonResource<FleaMarketTables>.Load(ResourceName, "data/softcore/fleamarket.json", warnings: warnings);
 }
 
 /// <summary>跳蚤市场数据表根。</summary>

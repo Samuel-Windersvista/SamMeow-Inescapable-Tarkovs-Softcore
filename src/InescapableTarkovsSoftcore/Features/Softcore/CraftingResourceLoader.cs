@@ -15,12 +15,14 @@ public static class CraftingResourceLoader
     internal const string RecipesResourceName = "InescapableTarkovsSoftcore.softcore.crafting-recipes.json";
 
     /// <summary>配方重平衡表（47 条，按 endProduct 定位）。</summary>
-    public static CraftingRebalanceTable LoadRebalance() =>
-        EmbeddedJsonResource<CraftingRebalanceTable>.Load(RebalanceResourceName);
+    public static CraftingRebalanceTable LoadRebalance(List<string>? warnings = null) =>
+        EmbeddedJsonResource<CraftingRebalanceTable>.Load(
+            RebalanceResourceName, "data/softcore/crafting-rebalance.json", warnings: warnings);
 
     /// <summary>新增配方表（12 条）。</summary>
-    public static CraftingRecipesTable LoadRecipes() =>
-        EmbeddedJsonResource<CraftingRecipesTable>.Load(RecipesResourceName);
+    public static CraftingRecipesTable LoadRecipes(List<string>? warnings = null) =>
+        EmbeddedJsonResource<CraftingRecipesTable>.Load(
+            RecipesResourceName, "data/softcore/crafting-recipes.json", warnings: warnings);
 }
 
 /// <summary>配方重平衡根。</summary>

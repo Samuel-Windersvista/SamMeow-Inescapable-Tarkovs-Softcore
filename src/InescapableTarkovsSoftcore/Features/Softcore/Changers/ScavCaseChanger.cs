@@ -60,7 +60,7 @@ public sealed class ScavCaseChanger : ISoftcoreChanger
             return;
         }
 
-        var data = ScavCaseResourceLoader.Load();
+        var data = ScavCaseResourceLoader.Load(log.Warnings);
         var templates = context.Tables.Templates;
 
         config.RewardItemParentBlacklist.Clear();
@@ -104,7 +104,7 @@ public sealed class ScavCaseChanger : ISoftcoreChanger
             return;
         }
 
-        var data = ScavCaseResourceLoader.Load();
+        var data = ScavCaseResourceLoader.Load(log.Warnings);
         config.RewardItemValueRangeRub = data.RewardItemValueRangeRub.ToDictionary(
             pair => pair.Key,
             pair => new MinMax<double> { Min = pair.Value.Min, Max = pair.Value.Max },

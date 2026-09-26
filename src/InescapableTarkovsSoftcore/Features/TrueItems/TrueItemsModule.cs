@@ -16,7 +16,7 @@ public sealed class TrueItemsModule(ISptLogger<TrueItemsModule> logger) : Featur
 
     public const int ModuleOrder = 500;
 
-    private static readonly Lazy<TrueItemsTables> Tables = new(TrueItemsResourceLoader.Load);
+    private static readonly Lazy<TrueItemsTables> Tables = new(() => TrueItemsResourceLoader.Load());
 
     public override string Id => ModuleId;
 

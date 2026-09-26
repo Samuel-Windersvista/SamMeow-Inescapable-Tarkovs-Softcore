@@ -67,7 +67,7 @@ public sealed class EconomyOptionsChanger : ISoftcoreChanger
         PacifistFleaMarketOptions options,
         SoftcoreChangeLog log)
     {
-        var data = FleaMarketResourceLoader.Load();
+        var data = FleaMarketResourceLoader.Load(log.Warnings);
         var templates = context.Tables.Templates;
         var handbook = templates.Handbook;
         if (handbook is null)
@@ -142,7 +142,7 @@ public sealed class EconomyOptionsChanger : ISoftcoreChanger
         BarterEconomyOptions options,
         SoftcoreChangeLog log)
     {
-        var data = FleaMarketResourceLoader.Load();
+        var data = FleaMarketResourceLoader.Load(log.Warnings);
         var templates = context.Tables.Templates;
         var barter = ragfair.Dynamic.Barter;
 

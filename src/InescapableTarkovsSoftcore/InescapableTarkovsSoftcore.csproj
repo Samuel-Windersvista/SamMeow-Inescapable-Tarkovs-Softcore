@@ -9,6 +9,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="InescapableTarkovsSoftcore.Tests" />
+  </ItemGroup>
+
   <!-- 默认配置模板：随包分发（build.ps1 拷贝为 config.json）并内嵌为运行时重建来源 -->
   <ItemGroup>
     <EmbeddedResource Include="..\..\config\default-config.json" LogicalName="InescapableTarkovsSoftcore.default-config.json" />
